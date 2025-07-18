@@ -7,30 +7,26 @@ import net.keyfc.api.model.page.Breadcrumb
 import net.keyfc.api.model.page.PageInfo
 import net.keyfc.api.model.result.BaseParseResult
 import org.jsoup.nodes.Document
-import java.net.URL
+import java.net.HttpCookie
 
 abstract class BaseParser<T> {
-    private val url: URL
-
-    constructor(relativeUrl: String) {
+    protected open fun parse(relativeUrl: String, cookies: List<HttpCookie>): T {
         validateUrl(relativeUrl)
-        url = ApiConfig.baseUrl + relativeUrl
-    }
 
-    protected abstract fun validateUrl(relativeUrl: String)
-
-    fun parse(): T = parse(parsePage())
-
-    protected abstract fun parse(baseParseResult: BaseParseResult): T
-
-    private fun parsePage(): BaseParseResult {
-        return try {
-            val doc = url.doc()
+        val url = ApiConfig.baseUrl + relativeUrl
+        val baseParseResult = try {
+            val doc = url.doc(cookies)
             BaseParseResult.Success(parsePageInfo(doc), parseBreadcrumbs(doc), doc)
         } catch (e: Exception) {
             BaseParseResult.Failure(e.message ?: "Unknown error occurred when parsing basic page info.", e)
         }
+
+        return parse(baseParseResult)
     }
+
+    protected abstract fun validateUrl(relativeUrl: String)
+
+    protected abstract fun parse(baseParseResult: BaseParseResult): T
 
     /**
      * Parse basic page information.

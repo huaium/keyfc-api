@@ -66,6 +66,7 @@ class LoginAuth(val username: String, val password: String) {
      * @return True if login successful, false otherwise
      */
     fun login(): LoginAuthResult {
+        // TODO: switch to OkHttp
         val loginUrl = "${LOGIN_URL}?stamp=${Math.random()}"
 
         val connection = URL(loginUrl).openConnection() as HttpURLConnection

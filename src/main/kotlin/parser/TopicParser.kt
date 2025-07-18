@@ -9,18 +9,17 @@ import net.keyfc.api.model.page.topic.TopicPage
 import net.keyfc.api.model.result.BaseParseResult
 import net.keyfc.api.model.result.TopicParseResult
 import org.jsoup.nodes.Document
+import java.net.HttpCookie
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
 
 /**
- * The constructor accepts either relative URL or a [Topic] object, allowing for forms like `showtopic-x.aspx` or `showtopic-x-y.aspx`.
- *
- * After initialization, call parse() method to parse the topic page.
+ * Call parse method to parse the topic page.
  *
  * @see <a href="https://keyfc.net/bbs/archiver/showtopic-70169.aspx">KeyFC Topic Sample</a>
  */
-class TopicParser : BaseParser<TopicParseResult> {
+object TopicParser : BaseParser<TopicParseResult>() {
     override fun validateUrl(relativeUrl: String) {
         // Only allow `showtopic-x.aspx` or `showtopic-x-y.aspx`
         if (!relativeUrl.matches(Regex("""showtopic-\d+(-\d+)?\.aspx"""))) {
@@ -28,9 +27,11 @@ class TopicParser : BaseParser<TopicParseResult> {
         }
     }
 
-    constructor(relativeUrl: String) : super(relativeUrl)
+    public override fun parse(relativeUrl: String, cookies: List<HttpCookie>) = super.parse(relativeUrl, cookies)
 
-    constructor(topic: Topic) : super(topic.link)
+    fun parse(relativeUrl: String) = super.parse(relativeUrl, emptyList())
+
+    fun parse(topic: Topic, cookies: List<HttpCookie> = emptyList()) = super.parse(topic.link, cookies)
 
     /**
      * Parse topic page and return structured [TopicPage] object.

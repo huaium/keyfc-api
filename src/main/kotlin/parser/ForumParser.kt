@@ -8,16 +8,15 @@ import net.keyfc.api.model.page.index.Forum
 import net.keyfc.api.model.result.BaseParseResult
 import net.keyfc.api.model.result.ForumParseResult
 import org.jsoup.nodes.Document
+import java.net.HttpCookie
 import java.util.regex.Pattern
 
 /**
- * The constructor accepts either relative URL or a [Forum] object, allowing for forms like `showforum-x.aspx` or `showforum-x-y.aspx`.
- *
- * After initialization, call parse() method to parse the forum page.
+ * Call parse method to parse the forum page.
  *
  * @see <a href="https://keyfc.net/bbs/archiver/showforum-52.aspx">KeyFC Forum Sample</a>
  */
-class ForumParser : BaseParser<ForumParseResult> {
+object ForumParser : BaseParser<ForumParseResult>() {
     override fun validateUrl(relativeUrl: String) {
         // Only allow `showforum-x.aspx` or `showforum-x-y.aspx`
         if (!relativeUrl.matches(Regex("""showforum-\d+(-\d+)?\.aspx"""))) {
@@ -25,9 +24,11 @@ class ForumParser : BaseParser<ForumParseResult> {
         }
     }
 
-    constructor(relativeUrl: String) : super(relativeUrl)
+    public override fun parse(relativeUrl: String, cookies: List<HttpCookie>) = super.parse(relativeUrl, cookies)
 
-    constructor(forum: Forum) : super(forum.link)
+    fun parse(relativeUrl: String) = super.parse(relativeUrl, emptyList())
+
+    fun parse(forum: Forum, cookies: List<HttpCookie> = emptyList()) = super.parse(forum.link, cookies)
 
     /**
      * Fetches and parses the forum page.

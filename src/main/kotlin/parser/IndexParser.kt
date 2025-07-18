@@ -6,13 +6,14 @@ import net.keyfc.api.model.page.index.IndexPage
 import net.keyfc.api.model.result.BaseParseResult
 import net.keyfc.api.model.result.IndexParseResult
 import org.jsoup.nodes.Element
+import java.net.HttpCookie
 
 /**
- * Call parse() method to parse the index page.
+ * Call parse method to parse the index page.
  *
  * @see <a href="https://keyfc.net/bbs/archiver/index.aspx">KeyFC Index</a>
  */
-object IndexParser : BaseParser<IndexParseResult>("index.aspx") {
+object IndexParser : BaseParser<IndexParseResult>() {
     override fun validateUrl(relativeUrl: String) {} // no need to validate
 
     /**
@@ -67,6 +68,7 @@ object IndexParser : BaseParser<IndexParseResult>("index.aspx") {
         }
     }
 
+    fun parse(cookies: List<HttpCookie> = emptyList()): IndexParseResult = parse("index.aspx", cookies)
 
     /**
      * Fetches and parses the index page.
