@@ -1,8 +1,8 @@
 package auth
 
-import net.keyfc.api.ApiConfig
+import net.keyfc.api.ApiApplication
 import net.keyfc.api.auth.LoginAuth
-import net.keyfc.api.ext.header
+import net.keyfc.api.ext.toHeaderStr
 import net.keyfc.api.model.result.LoginAuthResult
 import java.net.HttpURLConnection
 import java.net.URL
@@ -40,7 +40,7 @@ fun main() {
 
             // Display cookie header that can be used in subsequent requests
             println("\nCookie header for subsequent requests:")
-            val cookieHeader = result.cookies.header()
+            val cookieHeader = result.cookies.toHeaderStr()
             println(cookieHeader)
 
             // Test cookie usage in a subsequent request
@@ -88,7 +88,7 @@ private fun testLoggedInRequest(cookieHeader: String) {
 
         // Set the cookie header with our login cookies
         connection.setRequestProperty("Cookie", cookieHeader)
-        connection.setRequestProperty("User-Agent", ApiConfig.USER_AGENT)
+        connection.setRequestProperty("User-Agent", ApiApplication.USER_AGENT)
 
         // Get response code
         val responseCode = connection.responseCode

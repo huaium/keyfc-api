@@ -5,7 +5,7 @@ import java.net.HttpCookie
 /**
  * Get cookies as formatted string ready to be used in HTTP requests.
  */
-fun List<HttpCookie>.header(): String {
+fun List<HttpCookie>.toHeaderStr(): String {
     if (this.isEmpty())
         throw IllegalArgumentException("Empty cookies")
 

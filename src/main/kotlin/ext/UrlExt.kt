@@ -1,6 +1,6 @@
 package net.keyfc.api.ext
 
-import net.keyfc.api.ApiConfig
+import net.keyfc.api.ApiApplication
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.net.HttpCookie
@@ -15,7 +15,7 @@ fun URL.doc(cookies: List<HttpCookie>): Document {
     val cookieMap = cookies.associate { it.name to it.value }
 
     return Jsoup.connect(this.toString())
-        .userAgent(ApiConfig.USER_AGENT)
+        .userAgent(ApiApplication.USER_AGENT)
         .cookies(cookieMap)
         .get()
 }

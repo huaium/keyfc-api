@@ -1,17 +1,15 @@
 package net.keyfc.api.auth
 
-import net.keyfc.api.ApiConfig
-import net.keyfc.api.ApiConfig.LOGIN_URL
-import net.keyfc.api.ext.toFormData
+import net.keyfc.api.ApiApplication
+import net.keyfc.api.ApiApplication.LOGIN_URL
 import net.keyfc.api.model.result.LoginAuthResult
+import okhttp3.FormBody
+import okhttp3.Request
+import okhttp3.Response
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
-import java.io.OutputStreamWriter
 import java.net.HttpCookie
-import java.net.HttpURLConnection
-import java.net.URL
-import java.nio.charset.StandardCharsets
 import java.time.Instant
 
 /**
@@ -63,53 +61,38 @@ class LoginAuth(val username: String, val password: String) {
     /**
      * Login to the forum with provided username and password.
      *
-     * @return True if login successful, false otherwise
+     * @return A LoginAuthResult representing the outcome of the login attempt
      */
     fun login(): LoginAuthResult {
-        // TODO: switch to OkHttp
-        val loginUrl = "${LOGIN_URL}?stamp=${Math.random()}"
-
-        val connection = URL(loginUrl).openConnection() as HttpURLConnection
-
         try {
-            // Setup connection
-            connection.requestMethod = "POST"
-            connection.doOutput = true
-            connection.doInput = true
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
-            connection.setRequestProperty("User-Agent", ApiConfig.USER_AGENT)
-
             // Build form parameters
-            val formParams = mapOf(
-                "username" to username,
-                "password" to password,
-                "templateid" to TEMPLATE_ID,
-                "login" to LOGIN,
-                "expires" to DEFAULT_EXPIRES
-            )
-
-            // Write form parameters
-            OutputStreamWriter(connection.outputStream, StandardCharsets.UTF_8).use { writer ->
-                writer.write(formParams.toFormData())
-                writer.flush()
+            val formBodyBuilder = FormBody.Builder().apply {
+                add("username", username)
+                add("password", password)
+                add("templateid", TEMPLATE_ID)
+                add("login", LOGIN)
+                add("expires", DEFAULT_EXPIRES)
             }
 
-            // Get response code
-            val responseCode = connection.responseCode
+            val request = Request.Builder()
+                .url("${LOGIN_URL}?stamp=${Math.random()}")
+                .header("User-Agent", ApiApplication.USER_AGENT)
+                .post(formBodyBuilder.build())
+                .build()
 
-            // If login successful, store cookies
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                return tackleLoggedInPage(connection)
+            // Execute request
+            ApiApplication.httpClient.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    return tackleLoggedInPage(response)
+                }
+
+                return LoginAuthResult.Failure(
+                    "Response code is not 200, instead: ${response.code}",
+                    IOException("Response code is not 200, instead: ${response.code}")
+                )
             }
-
-            return LoginAuthResult.Failure(
-                "Response code is not 200, instead: $responseCode",
-                IOException("Response code is not 200, instead: $responseCode")
-            )
         } catch (e: Exception) {
             return LoginAuthResult.Failure("Error occurred during login: ${e.message}", e)
-        } finally {
-            connection.disconnect()
         }
     }
 
@@ -123,23 +106,21 @@ class LoginAuth(val username: String, val password: String) {
     /**
      * Extracts login failure attempts and maximum retry count from KeyFC forum error page.
      *
-     * @param connection HTTP connection after logging in
+     * @param response OkHttp response after logging in
      * @return [LoginAuthResult] indicating the result of the login attempt
      */
-    private fun tackleLoggedInPage(connection: HttpURLConnection): LoginAuthResult {
-        val html = connection.inputStream.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
-
+    private fun tackleLoggedInPage(response: Response): LoginAuthResult {
         try {
             // Parse the HTML document
-            val doc: Document = Jsoup.parse(html)
+            val doc: Document = Jsoup.parse(response.body.string())
 
             // Find the element containing the error message
             val errorMsg = doc.select("div.msg_inner.error_msg p").first()?.text()
 
             // Extract cookies when login is successful
             if (errorMsg == null) {
-                val cookiesHeader = connection.headerFields["Set-Cookie"]
-                _cookies = cookiesHeader?.flatMap { HttpCookie.parse(it) } ?: emptyList()
+                val cookiesHeader = response.headers("Set-Cookie")
+                _cookies = cookiesHeader.flatMap { HttpCookie.parse(it) }
                 return LoginAuthResult.Success(_cookies)
             }
 

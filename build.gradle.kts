@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation("org.jsoup:jsoup:1.21.1")
+    implementation("com.squareup.okhttp3:okhttp:5.1.0")
     testImplementation(kotlin("test"))
 }
 
