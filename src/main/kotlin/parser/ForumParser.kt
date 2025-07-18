@@ -1,7 +1,7 @@
 package net.keyfc.api.parser
 
+import net.keyfc.api.ext.parsePagination
 import net.keyfc.api.model.page.Breadcrumb
-import net.keyfc.api.model.page.Pagination
 import net.keyfc.api.model.page.forum.ForumPage
 import net.keyfc.api.model.page.forum.Topic
 import net.keyfc.api.model.page.index.Forum
@@ -33,7 +33,7 @@ class ForumParser : BaseParser<ForumParseResult> {
      * Fetches and parses the forum page.
      *
      * If basic page info is successfully parsed by super class, this method will reuse the HTML document provided,
-     * and validate the accessibility under current permission state. If not, it will return [ForumParseResult.PermissionDenied].
+     * and validate the accessibility under current permission state. If not, it will return [ForumParseResult.PermissionDenial].
      *
      * If it is accessible, structured data represented by [ForumPage] will be returned, wrapped in [ForumParseResult.Success].
      *
@@ -44,7 +44,7 @@ class ForumParser : BaseParser<ForumParseResult> {
             is BaseParseResult.Failure -> ForumParseResult.Failure(baseParseResult.message, baseParseResult.exception)
 
             is BaseParseResult.Success -> {
-                validatePermission(baseParseResult.doc)?.let { return it }
+                validateDenial(baseParseResult.doc)?.let { return it }
 
                 val (thisForum, parentForum) = parseForumStructure(baseParseResult.breadcrumbs)
 
@@ -55,7 +55,7 @@ class ForumParser : BaseParser<ForumParseResult> {
                         parentForum = parentForum,
                         thisForum = thisForum,
                         topics = parseTopics(baseParseResult.doc),
-                        pagination = parsePagination(baseParseResult.doc)
+                        pagination = baseParseResult.doc.parsePagination()
                     )
                 )
             }
@@ -63,14 +63,17 @@ class ForumParser : BaseParser<ForumParseResult> {
     }
 
     /**
-     * Validate the accessibility under current permission state.
-     * @return [ForumParseResult.PermissionDenied] if not accessible, null otherwise
+     * Validate the accessibility under current state.
+     * @return [ForumParseResult] if denied, null otherwise
      */
-    fun validatePermission(doc: Document): ForumParseResult.PermissionDenied? {
-        val msgElement = doc.selectFirst("div.msg")
+    private fun validateDenial(doc: Document): ForumParseResult? {
+        val msg = doc.selectFirst("div.msg")?.text()
 
-        if (msgElement != null && msgElement.text().contains("没有浏览该版块的权限")) {
-            return ForumParseResult.PermissionDenied(message = msgElement.text())
+        if (msg != null) {
+            if (msg.contains("没有浏览该版块的权限"))
+                return ForumParseResult.PermissionDenial(msg)
+
+            return ForumParseResult.UnknownDenial(msg)
         }
 
         return null
@@ -122,60 +125,5 @@ class ForumParser : BaseParser<ForumParseResult> {
         } else {
             0
         }
-    }
-
-    /**
-     * Parse pagination information.
-     * @return pagination info including page numbers, links, etc.
-     */
-    private fun parsePagination(doc: Document): Pagination {
-        val paginationDiv = doc.selectFirst("div.pagenumbers")
-
-        // Default values
-        var currentPage = 1
-        var totalPages = 1
-        var nextPageLink: String? = null
-        var previousPageLink: String? = null
-
-        if (paginationDiv != null) {
-            // Current page is usually a span element
-            val currentPageElement = paginationDiv.selectFirst("span")
-            currentPage = currentPageElement?.text()?.toIntOrNull() ?: 1
-
-            // Find all page links
-            val pageLinks = paginationDiv.select("a")
-            if (pageLinks.isNotEmpty()) {
-                // Last link is usually the maximum page number
-                val lastPageText = pageLinks.last()!!.text()
-                totalPages = lastPageText.toIntOrNull() ?: 1
-
-                // Find next page link
-                for (link in pageLinks) {
-                    val pageNum = link.text().toIntOrNull() ?: continue
-                    if (pageNum == currentPage + 1) {
-                        nextPageLink = link.attr("href")
-                        break
-                    }
-                }
-
-                // Find previous page link
-                for (link in pageLinks) {
-                    val pageNum = link.text().toIntOrNull() ?: continue
-                    if (pageNum == currentPage - 1) {
-                        previousPageLink = link.attr("href")
-                        break
-                    }
-                }
-            }
-        }
-
-        return Pagination(
-            currentPage = currentPage,
-            totalPages = totalPages,
-            hasNextPage = currentPage < totalPages,
-            hasPreviousPage = currentPage > 1,
-            nextPageLink = nextPageLink,
-            previousPageLink = previousPageLink
-        )
     }
 }

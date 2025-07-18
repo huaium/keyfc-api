@@ -37,8 +37,12 @@ fun printForumResult(result: ForumParseResult) {
             println("Previous Page Link: ${forumPage.pagination.previousPageLink}")
         }
 
-        is ForumParseResult.PermissionDenied -> {
-            println("Permission denied: ${result.message}")
+        is ForumParseResult.PermissionDenial -> {
+            println("Permission Denied: ${result.message}")
+        }
+
+        is ForumParseResult.UnknownDenial -> {
+            println("Unknown Denial: ${result.message}")
         }
 
         is ForumParseResult.Failure -> {

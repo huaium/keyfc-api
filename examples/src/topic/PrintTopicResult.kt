@@ -43,9 +43,13 @@ fun printTopicResult(result: TopicParseResult) {
             println("Previous Page Link: ${topicPage.pagination.previousPageLink}")
         }
 
-        is TopicParseResult.PermissionDenied -> {
+        is TopicParseResult.PermissionDenial -> {
             println("Required Permission Level: ${result.requiredPermissionLevel}")
             println("Current Identity: ${result.currentIdentity}")
+        }
+
+        is TopicParseResult.UnknownDenial -> {
+            println("Unknown Denial: ${result.message}")
         }
 
         is TopicParseResult.Failure -> {

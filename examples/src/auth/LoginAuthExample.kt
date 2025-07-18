@@ -11,9 +11,6 @@ import java.net.URL
  * Example demonstrating how to use the LoginAuth class for authenticating.
  */
 fun main() {
-    // Create LoginAuth instance
-    val auth = LoginAuth()
-
     // Read credentials from stdin
     print("Enter username: ")
     val username = readLine() ?: ""
@@ -21,10 +18,13 @@ fun main() {
     print("Enter password: ")
     val password = readLine() ?: ""
 
+    // Create LoginAuth instance
+    val auth = LoginAuth(username, password)
+
     println("Attempting to login with username: $username")
 
     // Attempt login
-    val result = auth.login(username, password)
+    val result = auth.login()
 
     when (result) {
         is LoginAuthResult.Success -> {
@@ -53,16 +53,21 @@ fun main() {
             println("Login status after logout: ${auth.isLoggedIn}")
         }
 
-        is LoginAuthResult.PasswordIncorrect -> {
+        is LoginAuthResult.PasswordIncorrectDenial -> {
             // Password incorrect
             println("Login failed: Password incorrect")
             println("Failing times: ${result.failingTimes}")
             println("Max retries: ${result.maxRetries}")
         }
 
-        is LoginAuthResult.UserNotFound -> {
+        is LoginAuthResult.UserNotFoundDenial -> {
             // User not found
             println("Login failed: User not found")
+        }
+
+        is LoginAuthResult.UnknownDenial -> {
+            // Unknown failure
+            println("Login failed: Unknown")
         }
 
         is LoginAuthResult.Failure -> {

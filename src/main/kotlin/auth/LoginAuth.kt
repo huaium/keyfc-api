@@ -12,11 +12,12 @@ import java.net.HttpCookie
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
+import java.time.Instant
 
 /**
- * Handle cookie based login operations.
+ * Handle cookie-based login operations.
  */
-class LoginAuth {
+class LoginAuth(val username: String, val password: String) {
     companion object {
         /**
          * Default expiration time in seconds (12 hours).
@@ -38,14 +39,33 @@ class LoginAuth {
      * Indicates if a user is currently logged in.
      */
     val isLoggedIn: Boolean
-        get() = _cookies.isNotEmpty()
+        get() = _cookies.isNotEmpty() && !isSessionExpired()
+
+    /**
+     * Check if the session has expired based on the 'expires' cookie.
+     *
+     * @return True if the session has expired or no expiration cookie is found, false otherwise
+     */
+    fun isSessionExpired(): Boolean {
+        val expiresCookie = _cookies.find { it.name == "expires" } ?: return true
+
+        return try {
+            val expirationTime = Instant.parse(expiresCookie.value)
+            val currentTime = Instant.now()
+
+            currentTime.isAfter(expirationTime)
+        } catch (_: Exception) {
+            // If we can't parse the expiration date, assume the session is expired
+            true
+        }
+    }
 
     /**
      * Login to the forum with provided username and password.
      *
      * @return True if login successful, false otherwise
      */
-    fun login(username: String, password: String): LoginAuthResult {
+    fun login(): LoginAuthResult {
         val loginUrl = "${LOGIN_URL}?stamp=${Math.random()}"
 
         val connection = URL(loginUrl).openConnection() as HttpURLConnection
@@ -105,7 +125,7 @@ class LoginAuth {
      * @param connection HTTP connection after logging in
      * @return [LoginAuthResult] indicating the result of the login attempt
      */
-    fun tackleLoggedInPage(connection: HttpURLConnection): LoginAuthResult {
+    private fun tackleLoggedInPage(connection: HttpURLConnection): LoginAuthResult {
         val html = connection.inputStream.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
 
         try {
@@ -124,31 +144,35 @@ class LoginAuth {
 
             // Check if user exists
             if (errorMsg.contains("用户不存在"))
-                return LoginAuthResult.UserNotFound(errorMsg)
+                return LoginAuthResult.UserNotFoundDenial(errorMsg)
 
-            // Use regular expression to extract failure count and max retry count
-            val pattern = "密码或安全提问第(\\d+)次错误, 您最多有(\\d+)次机会重试".toRegex()
-            val matchResult = pattern.find(errorMsg)
-                ?: return LoginAuthResult.Failure(
-                    "Pattern not found: $pattern",
-                    RuntimeException("Pattern not found: $pattern")
-                )
+            // Check if password is incorrect
+            "密码或安全提问第(\\d+)次错误, 您最多有(\\d+)次机会重试".toRegex().find(errorMsg)?.let { matchResult ->
+                return tacklePasswordIncorrect(matchResult)
+            }
 
-            // Extract and convert the numeric values
-            val failingTimes = matchResult.groupValues[1].toIntOrNull() ?: return LoginAuthResult.Failure(
-                "Failing times not found",
-                RuntimeException("Failing times not found")
-            )
-            val maxRetries = matchResult.groupValues[2].toIntOrNull() ?: return LoginAuthResult.Failure(
-                "Max retries not found",
-                RuntimeException("Max retries not found")
-            )
+            // Or else, error message is unrecognized
+            return LoginAuthResult.UnknownDenial(errorMsg)
 
-            // Return the extracted information as a pair
-            return LoginAuthResult.PasswordIncorrect(failingTimes, maxRetries)
         } catch (e: Exception) {
             // Handle any exceptions that might occur during handling logged-in page
             return LoginAuthResult.Failure("Error occurred during handling logged-in page: ${e.message}", e)
         }
+    }
+
+    private fun tacklePasswordIncorrect(matchResult: MatchResult): LoginAuthResult {
+        // Use regular expression to extract failure count and max retry count
+        // Extract and convert the numeric values
+        val failingTimes = matchResult.groupValues[1].toIntOrNull() ?: return LoginAuthResult.Failure(
+            "Failing times not found",
+            RuntimeException("Failing times not found")
+        )
+        val maxRetries = matchResult.groupValues[2].toIntOrNull() ?: return LoginAuthResult.Failure(
+            "Max retries not found",
+            RuntimeException("Max retries not found")
+        )
+
+        // Return the extracted information as a pair
+        return LoginAuthResult.PasswordIncorrectDenial(failingTimes, maxRetries)
     }
 }

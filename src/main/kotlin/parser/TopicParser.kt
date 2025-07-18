@@ -1,7 +1,7 @@
 package net.keyfc.api.parser
 
+import net.keyfc.api.ext.parsePagination
 import net.keyfc.api.model.page.Breadcrumb
-import net.keyfc.api.model.page.Pagination
 import net.keyfc.api.model.page.forum.Topic
 import net.keyfc.api.model.page.index.Forum
 import net.keyfc.api.model.page.topic.Post
@@ -41,7 +41,7 @@ class TopicParser : BaseParser<TopicParseResult> {
             is BaseParseResult.Failure -> TopicParseResult.Failure(baseParseResult.message, baseParseResult.exception)
 
             is BaseParseResult.Success -> {
-                validatePermission(baseParseResult.doc)?.let { return it }
+                validateDenial(baseParseResult.doc)?.let { return it }
 
                 // Parse structure
                 val (thisTopic, thisForum, parentForum) = parseStructure(baseParseResult.breadcrumbs)
@@ -50,7 +50,7 @@ class TopicParser : BaseParser<TopicParseResult> {
                 val posts = parsePosts(baseParseResult.doc)
 
                 // Parse pagination
-                val pagination = parsePagination(baseParseResult.doc)
+                val pagination = baseParseResult.doc.parsePagination()
 
                 TopicParseResult.Success(
                     TopicPage(
@@ -68,30 +68,29 @@ class TopicParser : BaseParser<TopicParseResult> {
     }
 
     /**
-     * Validate the accessibility under current permission state.
-     * @return [TopicParseResult.PermissionDenied] if not accessible, null otherwise
+     * Validate the accessibility under current state.
+     * @return [TopicParseResult] if denied, null otherwise
      */
-    fun validatePermission(doc: Document): TopicParseResult.PermissionDenied? {
-        val msgElement = doc.selectFirst("div.msg")
+    private fun validateDenial(doc: Document): TopicParseResult? {
+        val msg = doc.selectFirst("div.msg")?.text()
 
-        if (msgElement != null && msgElement.text().contains("阅读权限不够")) {
-            val msgText = msgElement.text()
+        if (msg != null) {
+            if (msg.contains("阅读权限不够")) {
+                val requiredPermissionRegex = "本主题阅读权限为: (\\d+)".toRegex()
+                val requiredPermissionMatch = requiredPermissionRegex.find(msg)
+                val requiredPermissionLevel = requiredPermissionMatch?.groupValues?.get(1)?.toIntOrNull() ?: -1
 
-            val requiredPermissionRegex = "本主题阅读权限为: (\\d+)".toRegex()
-            val requiredPermissionMatch = requiredPermissionRegex.find(msgText)
-            val requiredPermissionLevel = requiredPermissionMatch?.groupValues?.get(1)?.toIntOrNull() ?: 0
+                val currentIdentityRegex = "您当前的身份 \"(.+?)\" 阅读权限不够".toRegex()
+                val currentIdentityMatch = currentIdentityRegex.find(msg)
+                val currentIdentity = currentIdentityMatch?.groupValues?.get(1) ?: "未知用户"
 
-            val currentIdentityRegex = "您当前的身份 \"(.+?)\" 阅读权限不够".toRegex()
-            val currentIdentityMatch = currentIdentityRegex.find(msgText)
-            val currentIdentity = currentIdentityMatch?.groupValues?.get(1) ?: "未知用户"
+                return TopicParseResult.PermissionDenial(
+                    requiredPermissionLevel = requiredPermissionLevel,
+                    currentIdentity = currentIdentity,
+                )
+            }
 
-
-            val permissionDenied = TopicParseResult.PermissionDenied(
-                requiredPermissionLevel = requiredPermissionLevel,
-                currentIdentity = currentIdentity,
-            )
-
-            return permissionDenied
+            return TopicParseResult.UnknownDenial(msg)
         }
 
         return null
@@ -158,60 +157,5 @@ class TopicParser : BaseParser<TopicParseResult> {
         } else {
             Pair(titleText, Date())  // Fallback if pattern doesn't match
         }
-    }
-
-    /**
-     * Parse pagination information.
-     * @return pagination info including page numbers, links, etc.
-     */
-    private fun parsePagination(doc: Document): Pagination {
-        val paginationDiv = doc.selectFirst("div.pagenumbers")
-
-        // Default values
-        var currentPage = 1
-        var totalPages = 1
-        var nextPageLink: String? = null
-        var previousPageLink: String? = null
-
-        if (paginationDiv != null) {
-            // Current page is usually a span element
-            val currentPageElement = paginationDiv.selectFirst("span")
-            currentPage = currentPageElement?.text()?.toIntOrNull() ?: 1
-
-            // Find all page links
-            val pageLinks = paginationDiv.select("a")
-            if (pageLinks.isNotEmpty()) {
-                // Try to determine total pages from the last link
-                val lastPageText = pageLinks.last()!!.text()
-                totalPages = lastPageText.toIntOrNull() ?: 1
-
-                // Find next page link
-                for (link in pageLinks) {
-                    val pageNum = link.text().toIntOrNull() ?: continue
-                    if (pageNum == currentPage + 1) {
-                        nextPageLink = link.attr("href")
-                        break
-                    }
-                }
-
-                // Find previous page link
-                for (link in pageLinks) {
-                    val pageNum = link.text().toIntOrNull() ?: continue
-                    if (pageNum == currentPage - 1) {
-                        previousPageLink = link.attr("href")
-                        break
-                    }
-                }
-            }
-        }
-
-        return Pagination(
-            currentPage = currentPage,
-            totalPages = totalPages,
-            hasNextPage = currentPage < totalPages,
-            hasPreviousPage = currentPage > 1,
-            nextPageLink = nextPageLink,
-            previousPageLink = previousPageLink
-        )
     }
 }
