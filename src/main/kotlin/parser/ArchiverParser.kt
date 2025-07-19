@@ -12,16 +12,17 @@ import java.net.URI
 
 abstract class ArchiverParser<T> {
 
+    companion object {
+        val archiverUri = URI("https://keyfc.net/bbs/archiver/") // `/` is needed for concatenation
+    }
+
     protected open val parsePagination = false
 
-    protected fun uriToDocument(uri: URI, cookies: List<HttpCookie>): Document {
-        val cookieMap = cookies.associate { it.name to it.value }
-
-        return Jsoup.connect(uri.toString())
+    protected fun uriToDocument(uri: URI, cookies: List<HttpCookie>): Document =
+        Jsoup.connect(uri.toString())
             .userAgent(ApiApplication.USER_AGENT)
-            .cookies(cookieMap)
+            .cookies(cookies.associate { it.name to it.value })
             .get()
-    }
 
     /**
      * Subclasses should call this function to parse the page.

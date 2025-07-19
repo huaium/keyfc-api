@@ -1,6 +1,5 @@
 package net.keyfc.api.parser
 
-import net.keyfc.api.ApiApplication
 import net.keyfc.api.ext.plus
 import net.keyfc.api.model.page.Breadcrumb
 import net.keyfc.api.model.page.forum.ForumPage
@@ -23,7 +22,7 @@ object ForumParser : ArchiverParser<ForumParseResult>() {
 
     fun parse(id: String, cookies: List<HttpCookie> = emptyList()) =
         try {
-            super.parse(uriToDocument(ApiApplication.archiverUri + "showforum-${id}.aspx", cookies))
+            super.parse(uriToDocument(archiverUri + "showforum-${id}.aspx", cookies))
         } catch (e: Exception) {
             ForumParseResult.Failure("Jsoup document parsing failed", e)
         }

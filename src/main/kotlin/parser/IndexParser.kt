@@ -1,6 +1,5 @@
 package net.keyfc.api.parser
 
-import net.keyfc.api.ApiApplication
 import net.keyfc.api.ext.plus
 import net.keyfc.api.model.page.index.Forum
 import net.keyfc.api.model.page.index.IndexPage
@@ -71,7 +70,7 @@ object IndexParser : ArchiverParser<IndexParseResult>() {
     }
 
     fun parse(cookies: List<HttpCookie> = emptyList()): IndexParseResult =
-        parse(uriToDocument(ApiApplication.archiverUri + "index.aspx", cookies))
+        parse(uriToDocument(archiverUri + "index.aspx", cookies))
 
     /**
      * Fetches and parses the index page.
