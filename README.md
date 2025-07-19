@@ -2,8 +2,19 @@
 
 A library for parsing [KeyFC](https://keyfc.net/bbs/archiver/) pages into structured data classes for Kotlin and Java.
 
-> Currently using archiver pages for easier parsing, but may switch to full-version pages in the future to access more
-> data.
+## Supported
+
+- [x] [Index (archiver)](https://keyfc.net/bbs/archiver/index.aspx)
+- [x] [Forum (archiver)](https://keyfc.net/bbs/archiver/showforum-52.aspx)
+- [x] [Topic (archiver)](https://keyfc.net/bbs/archiver/showtopic-70169.aspx)
+- [x] [Login](https://keyfc.net/bbs/login.aspx)
+- [ ] [Search](https://keyfc.net/bbs/search.aspx)
+- [ ] [User center](https://keyfc.net/bbs/usercp.aspx)
+- [ ] [Notification](https://keyfc.net/bbs/usercpnotice.aspx?filter=all)
+- [ ] [Inbox](https://keyfc.net/bbs/usercpinbox.aspx)
+- [ ] [My topics](https://keyfc.net/bbs/mytopics.aspx)
+- [ ] [My posts](https://keyfc.net/bbs/myposts.aspx)
+- [ ] [My favourites](https://keyfc.net/bbs/usercpsubscribe.aspx)
 
 ## Examples
 
