@@ -17,15 +17,15 @@ fun printTopicResult(result: TopicParseResult) {
 
             println("\nParent Forum:")
             println("Name: ${topicPage.parentForum.name}")
-            println("Link: ${topicPage.parentForum.link}")
+            println("ID: ${topicPage.parentForum.id}")
 
             println("\nCurrent Forum:")
             println("Name: ${topicPage.thisForum.name}")
-            println("Link: ${topicPage.thisForum.link}")
+            println("ID: ${topicPage.thisForum.id}")
 
             println("\nThis Topic:")
             println("Name: ${topicPage.thisTopic.title}")
-            println("Link: ${topicPage.thisTopic.link}")
+            println("ID: ${topicPage.thisTopic.id}")
 
             println("\nPosts (${topicPage.posts.size} total):")
             topicPage.posts.forEach { post ->
@@ -34,13 +34,15 @@ fun printTopicResult(result: TopicParseResult) {
                 println("Content: ${post.content.take(50)}...")  // Just show first 50 chars
             }
 
-            println("\nPagination Information:")
-            println("Current Page: ${topicPage.pagination.currentPage}")
-            println("Total Pages: ${topicPage.pagination.totalPages}")
-            println("Has Next Page: ${topicPage.pagination.hasNextPage}")
-            println("Has Previous Page: ${topicPage.pagination.hasPreviousPage}")
-            println("Next Page Link: ${topicPage.pagination.nextPageLink}")
-            println("Previous Page Link: ${topicPage.pagination.previousPageLink}")
+            topicPage.pagination?.let {
+                println("\nPagination Information:")
+                println("Current Page: ${it.currentPage}")
+                println("Total Pages: ${it.totalPages}")
+                println("Has Next Page: ${it.hasNextPage}")
+                println("Has Previous Page: ${it.hasPreviousPage}")
+                println("Next Page Link: ${it.nextPageLink}")
+                println("Previous Page Link: ${it.previousPageLink}")
+            }
         }
 
         is TopicParseResult.PermissionDenial -> {

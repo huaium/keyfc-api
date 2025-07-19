@@ -2,7 +2,7 @@ package auth
 
 import net.keyfc.api.ApiApplication
 import net.keyfc.api.auth.LoginAuth
-import net.keyfc.api.ext.toHeaderStr
+import net.keyfc.api.ext.toHeaderString
 import net.keyfc.api.model.result.LoginAuthResult
 import java.net.HttpURLConnection
 import java.net.URL
@@ -40,7 +40,7 @@ fun main() {
 
             // Display cookie header that can be used in subsequent requests
             println("\nCookie header for subsequent requests:")
-            val cookieHeader = result.cookies.toHeaderStr()
+            val cookieHeader = result.cookies.toHeaderString()
             println(cookieHeader)
 
             // Test cookie usage in a subsequent request

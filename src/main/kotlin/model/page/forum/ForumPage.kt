@@ -11,5 +11,5 @@ data class ForumPage(
     val parentForum: Forum,
     val thisForum: Forum,
     val topics: List<Topic>,
-    val pagination: Pagination
+    val pagination: Pagination?
 )

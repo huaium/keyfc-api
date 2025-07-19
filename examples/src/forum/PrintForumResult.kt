@@ -17,24 +17,26 @@ fun printForumResult(result: ForumParseResult) {
 
             println("\nParent Forum:")
             println("Name: ${forumPage.parentForum.name}")
-            println("Link: ${forumPage.parentForum.link}")
+            println("ID: ${forumPage.parentForum.id}")
 
             println("\nCurrent Forum:")
             println("Name: ${forumPage.thisForum.name}")
-            println("Link: ${forumPage.thisForum.link}")
+            println("ID: ${forumPage.thisForum.id}")
 
             println("\nTopic List:")
             forumPage.topics.forEachIndexed { index, topic ->
-                println("${index + 1}. ${topic.title} (${topic.replyCount} replies) -> ${topic.link}")
+                println("${index + 1}. ${topic.title} (${topic.replyCount} replies) -> ${topic.id}")
             }
 
-            println("\nPagination Information:")
-            println("Current Page: ${forumPage.pagination.currentPage}")
-            println("Total Pages: ${forumPage.pagination.totalPages}")
-            println("Has Next Page: ${forumPage.pagination.hasNextPage}")
-            println("Has Previous Page: ${forumPage.pagination.hasPreviousPage}")
-            println("Next Page Link: ${forumPage.pagination.nextPageLink}")
-            println("Previous Page Link: ${forumPage.pagination.previousPageLink}")
+            forumPage.pagination?.let {
+                println("\nPagination Information:")
+                println("Current Page: ${it.currentPage}")
+                println("Total Pages: ${it.totalPages}")
+                println("Has Next Page: ${it.hasNextPage}")
+                println("Has Previous Page: ${it.hasPreviousPage}")
+                println("Next Page Link: ${it.nextPageLink}")
+                println("Previous Page Link: ${it.previousPageLink}")
+            }
         }
 
         is ForumParseResult.PermissionDenial -> {

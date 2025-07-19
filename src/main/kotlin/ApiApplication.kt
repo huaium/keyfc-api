@@ -4,7 +4,9 @@ import okhttp3.OkHttpClient
 import java.net.URL
 
 object ApiApplication {
-    val baseUrl = URL("https://keyfc.net/bbs/archiver/") // `/` is needed for concatenation
+    val baseUrl = URL("https://keyfc.net/bbs/") // `/` is needed for concatenation
+
+    val archiverUrl = URL("https://keyfc.net/bbs/archiver/")
 
     const val LOGIN_URL = "https://keyfc.net/bbs/login.aspx"
 

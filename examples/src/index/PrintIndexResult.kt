@@ -12,8 +12,8 @@ fun printIndexResult(result: IndexParseResult) {
             println("Description: ${indexPage.pageInfo.description}")
 
             indexPage.categories.forEach { cat ->
-                println("\n[Category]: ${cat.name} -> ${cat.link}")
-                printForumTree(cat.forums)
+                println("\n[Category]: ${cat.name} -> ${cat.id}")
+                printForumTree(cat.subForums)
             }
         }
 
@@ -29,7 +29,7 @@ fun printIndexResult(result: IndexParseResult) {
  */
 private fun printForumTree(forums: List<Forum>, level: Int = 1) {
     forums.forEach {
-        println("${"-".repeat(level)} ${it.name} -> ${it.link}")
+        println("${"-".repeat(level)} ${it.name} -> ${it.id}")
         printForumTree(it.subForums, level + 1)
     }
 }

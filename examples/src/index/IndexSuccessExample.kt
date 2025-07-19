@@ -7,4 +7,3 @@ fun main() {
 
     printIndexResult(result)
 }
-

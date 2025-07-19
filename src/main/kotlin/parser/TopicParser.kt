@@ -1,12 +1,11 @@
 package net.keyfc.api.parser
 
-import net.keyfc.api.ext.parsePagination
 import net.keyfc.api.model.page.Breadcrumb
 import net.keyfc.api.model.page.forum.Topic
 import net.keyfc.api.model.page.index.Forum
 import net.keyfc.api.model.page.topic.Post
 import net.keyfc.api.model.page.topic.TopicPage
-import net.keyfc.api.model.result.BaseParseResult
+import net.keyfc.api.model.result.ArchiverParseResult
 import net.keyfc.api.model.result.TopicParseResult
 import org.jsoup.nodes.Document
 import java.net.HttpCookie
@@ -19,7 +18,12 @@ import java.util.regex.Pattern
  *
  * @see <a href="https://keyfc.net/bbs/archiver/showtopic-70169.aspx">KeyFC Topic Sample</a>
  */
-object TopicParser : BaseParser<TopicParseResult>() {
+object TopicParser : ArchiverParser<TopicParseResult>() {
+
+    // TODO: use ID instead of relative URL
+
+    override val parsePagination = true
+
     override fun validateUrl(relativeUrl: String) {
         // Only allow `showtopic-x.aspx` or `showtopic-x-y.aspx`
         if (!relativeUrl.matches(Regex("""showtopic-\d+(-\d+)?\.aspx"""))) {
@@ -31,37 +35,34 @@ object TopicParser : BaseParser<TopicParseResult>() {
 
     fun parse(relativeUrl: String) = super.parse(relativeUrl, emptyList())
 
-    fun parse(topic: Topic, cookies: List<HttpCookie> = emptyList()) = super.parse(topic.link, cookies)
+    fun parse(topic: Topic, cookies: List<HttpCookie> = emptyList()) = super.parse(topic.id, cookies)
 
     /**
      * Parse topic page and return structured [TopicPage] object.
      * @return parsed topic page data including posts, pagination, etc.
      */
-    override fun parse(baseParseResult: BaseParseResult): TopicParseResult {
-        return when (baseParseResult) {
-            is BaseParseResult.Failure -> TopicParseResult.Failure(baseParseResult.message, baseParseResult.exception)
+    override fun parse(archiverParseResult: ArchiverParseResult): TopicParseResult {
+        return when (archiverParseResult) {
+            is ArchiverParseResult.Failure -> TopicParseResult.Failure(
+                archiverParseResult.message,
+                archiverParseResult.exception
+            )
 
-            is BaseParseResult.Success -> {
-                validateDenial(baseParseResult.doc)?.let { return it }
+            is ArchiverParseResult.Success -> {
+                validateDenial(archiverParseResult.doc)?.let { return it }
 
                 // Parse structure
-                val (thisTopic, thisForum, parentForum) = parseStructure(baseParseResult.breadcrumbs)
-
-                // Parse posts
-                val posts = parsePosts(baseParseResult.doc)
-
-                // Parse pagination
-                val pagination = baseParseResult.doc.parsePagination()
+                val (thisTopic, thisForum, parentForum) = parseStructure(archiverParseResult.breadcrumbs)
 
                 TopicParseResult.Success(
                     TopicPage(
-                        pageInfo = baseParseResult.pageInfo,
-                        breadcrumbs = baseParseResult.breadcrumbs,
+                        pageInfo = archiverParseResult.pageInfo,
+                        breadcrumbs = archiverParseResult.breadcrumbs,
                         thisTopic = thisTopic,
                         thisForum = thisForum,
                         parentForum = parentForum,
-                        posts = posts,
-                        pagination = pagination
+                        posts = parsePosts(archiverParseResult.doc),
+                        pagination = archiverParseResult.pagination
                     )
                 )
             }
@@ -104,13 +105,13 @@ object TopicParser : BaseParser<TopicParseResult>() {
     private fun parseStructure(breadcrumbs: List<Breadcrumb>): Triple<Topic, Forum, Forum> {
         // Last link is this topic
         val lastIndex = breadcrumbs.size - 1
-        val thisTopic = Topic(breadcrumbs[lastIndex].name, breadcrumbs[lastIndex].link, null)
+        val thisTopic = Topic(breadcrumbs[lastIndex].name, Topic.extractId(breadcrumbs[lastIndex].link) ?: "", null)
 
         // Second to last link is this forum
-        val thisForum = Forum(breadcrumbs[lastIndex - 1].name, breadcrumbs[lastIndex - 1].link)
+        val thisForum = Forum(breadcrumbs[lastIndex - 1].name, Forum.extractId(breadcrumbs[lastIndex - 1].link) ?: "")
 
         // Third to last link is parent forum
-        val parentForum = Forum(breadcrumbs[lastIndex - 2].name, breadcrumbs[lastIndex - 2].link)
+        val parentForum = Forum(breadcrumbs[lastIndex - 2].name, Forum.extractId(breadcrumbs[lastIndex - 2].link) ?: "")
 
         return Triple(thisTopic, thisForum, parentForum)
     }

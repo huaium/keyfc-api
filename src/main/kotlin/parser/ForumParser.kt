@@ -1,11 +1,10 @@
 package net.keyfc.api.parser
 
-import net.keyfc.api.ext.parsePagination
 import net.keyfc.api.model.page.Breadcrumb
 import net.keyfc.api.model.page.forum.ForumPage
 import net.keyfc.api.model.page.forum.Topic
 import net.keyfc.api.model.page.index.Forum
-import net.keyfc.api.model.result.BaseParseResult
+import net.keyfc.api.model.result.ArchiverParseResult
 import net.keyfc.api.model.result.ForumParseResult
 import org.jsoup.nodes.Document
 import java.net.HttpCookie
@@ -16,7 +15,12 @@ import java.util.regex.Pattern
  *
  * @see <a href="https://keyfc.net/bbs/archiver/showforum-52.aspx">KeyFC Forum Sample</a>
  */
-object ForumParser : BaseParser<ForumParseResult>() {
+object ForumParser : ArchiverParser<ForumParseResult>() {
+
+    // TODO: use ID instead of relative URL
+
+    override val parsePagination = true
+
     override fun validateUrl(relativeUrl: String) {
         // Only allow `showforum-x.aspx` or `showforum-x-y.aspx`
         if (!relativeUrl.matches(Regex("""showforum-\d+(-\d+)?\.aspx"""))) {
@@ -28,7 +32,7 @@ object ForumParser : BaseParser<ForumParseResult>() {
 
     fun parse(relativeUrl: String) = super.parse(relativeUrl, emptyList())
 
-    fun parse(forum: Forum, cookies: List<HttpCookie> = emptyList()) = super.parse(forum.link, cookies)
+    fun parse(forum: Forum, cookies: List<HttpCookie> = emptyList()) = super.parse(forum.id, cookies)
 
     /**
      * Fetches and parses the forum page.
@@ -40,23 +44,26 @@ object ForumParser : BaseParser<ForumParseResult>() {
      *
      * Or, if parsing fails, it will return [ForumParseResult.Failure] with the error message and exception.
      */
-    override fun parse(baseParseResult: BaseParseResult): ForumParseResult {
-        return when (baseParseResult) {
-            is BaseParseResult.Failure -> ForumParseResult.Failure(baseParseResult.message, baseParseResult.exception)
+    override fun parse(archiverParseResult: ArchiverParseResult): ForumParseResult {
+        return when (archiverParseResult) {
+            is ArchiverParseResult.Failure -> ForumParseResult.Failure(
+                archiverParseResult.message,
+                archiverParseResult.exception
+            )
 
-            is BaseParseResult.Success -> {
-                validateDenial(baseParseResult.doc)?.let { return it }
+            is ArchiverParseResult.Success -> {
+                validateDenial(archiverParseResult.doc)?.let { return it }
 
-                val (thisForum, parentForum) = parseForumStructure(baseParseResult.breadcrumbs)
+                val (thisForum, parentForum) = parseForumStructure(archiverParseResult.breadcrumbs)
 
                 ForumParseResult.Success(
                     ForumPage(
-                        pageInfo = baseParseResult.pageInfo,
-                        breadcrumbs = baseParseResult.breadcrumbs,
+                        pageInfo = archiverParseResult.pageInfo,
+                        breadcrumbs = archiverParseResult.breadcrumbs,
                         parentForum = parentForum,
                         thisForum = thisForum,
-                        topics = parseTopics(baseParseResult.doc),
-                        pagination = baseParseResult.doc.parsePagination()
+                        topics = parseTopics(archiverParseResult.doc),
+                        pagination = archiverParseResult.pagination
                     )
                 )
             }
@@ -88,10 +95,10 @@ object ForumParser : BaseParser<ForumParseResult>() {
     private fun parseForumStructure(breadcrumbs: List<Breadcrumb>): Pair<Forum, Forum> {
         // Last link is this forum
         val lastIndex = breadcrumbs.size - 1
-        val thisForum = Forum(breadcrumbs[lastIndex].name, breadcrumbs[lastIndex].link)
+        val thisForum = Forum(breadcrumbs[lastIndex].name, Forum.extractId(breadcrumbs[lastIndex].link) ?: "")
 
         // Second to last link is parent forum
-        val parentForum = Forum(breadcrumbs[lastIndex - 1].name, breadcrumbs[lastIndex - 1].link)
+        val parentForum = Forum(breadcrumbs[lastIndex - 1].name, Forum.extractId(breadcrumbs[lastIndex - 1].link) ?: "")
 
         return Pair(thisForum, parentForum)
     }
@@ -104,13 +111,13 @@ object ForumParser : BaseParser<ForumParseResult>() {
         return doc.select("#wrap ol li").map { element ->
             val anchor = element.selectFirst("a")
             val title = anchor?.text() ?: ""
-            val link = anchor?.attr("href") ?: ""
+            val id = Topic.extractId(anchor?.attr("href")) ?: ""
 
             // Parse reply count, format is usually `(X replies)`
             val replyCountText = element.ownText().trim()
             val replyCount = extractReplyCount(replyCountText)
 
-            Topic(title, link, replyCount)
+            Topic(title, id, replyCount)
         }
     }
 

@@ -4,5 +4,5 @@ import net.keyfc.api.model.page.PageInfo
 
 data class IndexPage(
     val pageInfo: PageInfo,
-    val categories: List<Category>
+    val categories: List<Forum>
 )
