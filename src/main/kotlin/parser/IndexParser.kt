@@ -1,5 +1,7 @@
 package net.keyfc.api.parser
 
+import net.keyfc.api.ApiApplication
+import net.keyfc.api.ext.plus
 import net.keyfc.api.model.page.index.Forum
 import net.keyfc.api.model.page.index.IndexPage
 import net.keyfc.api.model.result.ArchiverParseResult
@@ -13,8 +15,6 @@ import java.net.HttpCookie
  * @see <a href="https://keyfc.net/bbs/archiver/index.aspx">KeyFC Index</a>
  */
 object IndexParser : ArchiverParser<IndexParseResult>() {
-    override fun validateUrl(relativeUrl: String) {} // no need to validate
-
     /**
      * Parse state class that holds temporary state during processing.
      */
@@ -26,6 +26,7 @@ object IndexParser : ArchiverParser<IndexParseResult>() {
     ) {
         /**
          * Adds current buffer content to the categories list.
+         *
          * @return updated categories list
          */
         fun flushCategory(): MutableList<Forum> {
@@ -46,6 +47,7 @@ object IndexParser : ArchiverParser<IndexParseResult>() {
 
         /**
          * Starts a new category, first adding the old category to the list.
+         *
          * @return new state with existing categories, new name, new id, and an empty forum buffer
          */
         fun startNewCategory(name: String, id: String): ParseState {
@@ -59,6 +61,7 @@ object IndexParser : ArchiverParser<IndexParseResult>() {
 
         /**
          * Adds a forum to the current buffer.
+         *
          * @return updated state after adding the forum to the buffer
          */
         fun addForum(name: String, id: String, level: Int): ParseState {
@@ -67,7 +70,8 @@ object IndexParser : ArchiverParser<IndexParseResult>() {
         }
     }
 
-    fun parse(cookies: List<HttpCookie> = emptyList()): IndexParseResult = parse("index.aspx", cookies)
+    fun parse(cookies: List<HttpCookie> = emptyList()): IndexParseResult =
+        parse(uriToDocument(ApiApplication.archiverUri + "index.aspx", cookies))
 
     /**
      * Fetches and parses the index page.
@@ -77,7 +81,7 @@ object IndexParser : ArchiverParser<IndexParseResult>() {
      *
      * If parsing fails, this method will return [IndexParseResult.Failure] with the error message and exception.
      */
-    override fun parse(archiverParseResult: ArchiverParseResult): IndexParseResult {
+    override fun parseAfter(archiverParseResult: ArchiverParseResult): IndexParseResult {
         return when (archiverParseResult) {
             is ArchiverParseResult.Failure -> IndexParseResult.Failure(
                 archiverParseResult.message,
@@ -86,7 +90,7 @@ object IndexParser : ArchiverParser<IndexParseResult>() {
 
             is ArchiverParseResult.Success -> {
                 // Select all category and forum items while maintaining order
-                val elements = archiverParseResult.doc.select("div.cateitem, div.forumitem")
+                val elements = archiverParseResult.document.select("div.cateitem, div.forumitem")
 
                 // Process elements in functional style using fold
                 val categories = elements.fold(ParseState()) { state, element ->
@@ -106,6 +110,7 @@ object IndexParser : ArchiverParser<IndexParseResult>() {
 
     /**
      * Processes a single element.
+     *
      * @return updated parse state
      */
     private fun processElement(state: ParseState, element: Element): ParseState {

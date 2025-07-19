@@ -1,5 +1,7 @@
 package net.keyfc.api.parser
 
+import net.keyfc.api.ApiApplication
+import net.keyfc.api.ext.plus
 import net.keyfc.api.model.page.Breadcrumb
 import net.keyfc.api.model.page.forum.ForumPage
 import net.keyfc.api.model.page.forum.Topic
@@ -17,22 +19,17 @@ import java.util.regex.Pattern
  */
 object ForumParser : ArchiverParser<ForumParseResult>() {
 
-    // TODO: use ID instead of relative URL
-
     override val parsePagination = true
 
-    override fun validateUrl(relativeUrl: String) {
-        // Only allow `showforum-x.aspx` or `showforum-x-y.aspx`
-        if (!relativeUrl.matches(Regex("""showforum-\d+(-\d+)?\.aspx"""))) {
-            throw IllegalArgumentException("The path format is invalid. It must be in the form `showforum-x.aspx` or `showforum-x-y.aspx`.")
+    fun parse(id: String, cookies: List<HttpCookie> = emptyList()) =
+        try {
+            super.parse(uriToDocument(ApiApplication.archiverUri + "showforum-${id}.aspx", cookies))
+        } catch (e: Exception) {
+            ForumParseResult.Failure("Jsoup document parsing failed", e)
         }
-    }
 
-    public override fun parse(relativeUrl: String, cookies: List<HttpCookie>) = super.parse(relativeUrl, cookies)
-
-    fun parse(relativeUrl: String) = super.parse(relativeUrl, emptyList())
-
-    fun parse(forum: Forum, cookies: List<HttpCookie> = emptyList()) = super.parse(forum.id, cookies)
+    fun parse(forum: Forum, cookies: List<HttpCookie> = emptyList()) =
+        parse(forum.id, cookies)
 
     /**
      * Fetches and parses the forum page.
@@ -44,7 +41,7 @@ object ForumParser : ArchiverParser<ForumParseResult>() {
      *
      * Or, if parsing fails, it will return [ForumParseResult.Failure] with the error message and exception.
      */
-    override fun parse(archiverParseResult: ArchiverParseResult): ForumParseResult {
+    override fun parseAfter(archiverParseResult: ArchiverParseResult): ForumParseResult {
         return when (archiverParseResult) {
             is ArchiverParseResult.Failure -> ForumParseResult.Failure(
                 archiverParseResult.message,
@@ -52,7 +49,7 @@ object ForumParser : ArchiverParser<ForumParseResult>() {
             )
 
             is ArchiverParseResult.Success -> {
-                validateDenial(archiverParseResult.doc)?.let { return it }
+                validateDenial(archiverParseResult.document)?.let { return it }
 
                 val (thisForum, parentForum) = parseForumStructure(archiverParseResult.breadcrumbs)
 
@@ -62,7 +59,7 @@ object ForumParser : ArchiverParser<ForumParseResult>() {
                         breadcrumbs = archiverParseResult.breadcrumbs,
                         parentForum = parentForum,
                         thisForum = thisForum,
-                        topics = parseTopics(archiverParseResult.doc),
+                        topics = parseTopics(archiverParseResult.document),
                         pagination = archiverParseResult.pagination
                     )
                 )
@@ -72,6 +69,7 @@ object ForumParser : ArchiverParser<ForumParseResult>() {
 
     /**
      * Validate the accessibility under current state.
+     *
      * @return [ForumParseResult] if denied, null otherwise
      */
     private fun validateDenial(doc: Document): ForumParseResult? {
@@ -90,6 +88,7 @@ object ForumParser : ArchiverParser<ForumParseResult>() {
 
     /**
      * Parse forum structure.
+     *
      * @return a pair of this forum and its parent forum
      */
     private fun parseForumStructure(breadcrumbs: List<Breadcrumb>): Pair<Forum, Forum> {
@@ -105,6 +104,7 @@ object ForumParser : ArchiverParser<ForumParseResult>() {
 
     /**
      * Parse topic list.
+     *
      * @return a list of topics
      */
     private fun parseTopics(doc: Document): List<Topic> {
@@ -123,6 +123,7 @@ object ForumParser : ArchiverParser<ForumParseResult>() {
 
     /**
      * Extract reply count from text.
+     *
      * @return reply count
      */
     private fun extractReplyCount(text: String): Int {

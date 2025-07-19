@@ -3,7 +3,7 @@ package topic
 import net.keyfc.api.parser.TopicParser
 
 fun main() {
-    val result = TopicParser.parse("showtopic-70169.aspx")
+    val result = TopicParser.parse("70169")
 
     printTopicResult(result)
 }

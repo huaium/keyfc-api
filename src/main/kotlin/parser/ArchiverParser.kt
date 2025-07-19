@@ -1,46 +1,49 @@
 package net.keyfc.api.parser
 
 import net.keyfc.api.ApiApplication
-import net.keyfc.api.ext.doc
-import net.keyfc.api.ext.plus
 import net.keyfc.api.model.page.Breadcrumb
 import net.keyfc.api.model.page.PageInfo
 import net.keyfc.api.model.page.Pagination
 import net.keyfc.api.model.result.ArchiverParseResult
+import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.net.HttpCookie
+import java.net.URI
 
 abstract class ArchiverParser<T> {
 
     protected open val parsePagination = false
 
+    protected fun uriToDocument(uri: URI, cookies: List<HttpCookie>): Document {
+        val cookieMap = cookies.associate { it.name to it.value }
+
+        return Jsoup.connect(uri.toString())
+            .userAgent(ApiApplication.USER_AGENT)
+            .cookies(cookieMap)
+            .get()
+    }
+
     /**
-     * Whether this parser uses the archiver prefix in URLs.
-     * Override in subclasses to change default behavior.
+     * Subclasses should call this function to parse the page.
+     *
+     * It will first parse basic information, and then call [parseAfter] overwritten by the subclass.
      */
-    protected open fun parse(relativeUrl: String, cookies: List<HttpCookie>): T {
-        validateUrl(relativeUrl)
-
-        val url = ApiApplication.archiverUrl + relativeUrl
-
+    protected fun parse(document: Document): T {
         val archiverParseResult = try {
-            val doc = url.doc(cookies)
             ArchiverParseResult.Success(
-                doc = doc,
-                pageInfo = parsePageInfo(doc),
-                breadcrumbs = parseBreadcrumbs(doc),
-                pagination = if (parsePagination) parsePagination(doc) else null
+                document = document,
+                pageInfo = parsePageInfo(document),
+                breadcrumbs = parseBreadcrumbs(document),
+                pagination = if (parsePagination) parsePagination(document) else null
             )
         } catch (e: Exception) {
             ArchiverParseResult.Failure(e.message ?: "Unknown error occurred when parsing basic page info.", e)
         }
 
-        return parse(archiverParseResult)
+        return parseAfter(archiverParseResult)
     }
 
-    protected abstract fun validateUrl(relativeUrl: String)
-
-    protected abstract fun parse(archiverParseResult: ArchiverParseResult): T
+    protected abstract fun parseAfter(archiverParseResult: ArchiverParseResult): T
 
     /**
      * Parse basic page information.

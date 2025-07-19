@@ -1,7 +1,7 @@
 package net.keyfc.api.auth
 
 import net.keyfc.api.ApiApplication
-import net.keyfc.api.ApiApplication.LOGIN_URL
+import net.keyfc.api.ApiApplication.loginUri
 import net.keyfc.api.model.result.LoginAuthResult
 import okhttp3.FormBody
 import okhttp3.Request
@@ -75,7 +75,7 @@ class LoginAuth(val username: String, val password: String) {
             }
 
             val request = Request.Builder()
-                .url("${LOGIN_URL}?stamp=${Math.random()}")
+                .url("${loginUri}?stamp=${Math.random()}")
                 .header("User-Agent", ApiApplication.USER_AGENT)
                 .post(formBodyBuilder.build())
                 .build()

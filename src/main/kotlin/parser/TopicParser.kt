@@ -1,5 +1,7 @@
 package net.keyfc.api.parser
 
+import net.keyfc.api.ApiApplication
+import net.keyfc.api.ext.plus
 import net.keyfc.api.model.page.Breadcrumb
 import net.keyfc.api.model.page.forum.Topic
 import net.keyfc.api.model.page.index.Forum
@@ -20,28 +22,24 @@ import java.util.regex.Pattern
  */
 object TopicParser : ArchiverParser<TopicParseResult>() {
 
-    // TODO: use ID instead of relative URL
-
     override val parsePagination = true
 
-    override fun validateUrl(relativeUrl: String) {
-        // Only allow `showtopic-x.aspx` or `showtopic-x-y.aspx`
-        if (!relativeUrl.matches(Regex("""showtopic-\d+(-\d+)?\.aspx"""))) {
-            throw IllegalArgumentException("The path format is invalid. It must be in the form `showtopic-x.aspx` or `showtopic-x-y.aspx`.")
+    fun parse(id: String, cookies: List<HttpCookie> = emptyList()) =
+        try {
+            super.parse(uriToDocument(ApiApplication.archiverUri + "showtopic-${id}.aspx", cookies))
+        } catch (e: Exception) {
+            TopicParseResult.Failure("Jsoup document parsing failed", e)
         }
-    }
 
-    public override fun parse(relativeUrl: String, cookies: List<HttpCookie>) = super.parse(relativeUrl, cookies)
-
-    fun parse(relativeUrl: String) = super.parse(relativeUrl, emptyList())
-
-    fun parse(topic: Topic, cookies: List<HttpCookie> = emptyList()) = super.parse(topic.id, cookies)
+    fun parse(topic: Topic, cookies: List<HttpCookie> = emptyList()) =
+        parse(topic.id, cookies)
 
     /**
      * Parse topic page and return structured [TopicPage] object.
+     *
      * @return parsed topic page data including posts, pagination, etc.
      */
-    override fun parse(archiverParseResult: ArchiverParseResult): TopicParseResult {
+    override fun parseAfter(archiverParseResult: ArchiverParseResult): TopicParseResult {
         return when (archiverParseResult) {
             is ArchiverParseResult.Failure -> TopicParseResult.Failure(
                 archiverParseResult.message,
@@ -49,7 +47,7 @@ object TopicParser : ArchiverParser<TopicParseResult>() {
             )
 
             is ArchiverParseResult.Success -> {
-                validateDenial(archiverParseResult.doc)?.let { return it }
+                validateDenial(archiverParseResult.document)?.let { return it }
 
                 // Parse structure
                 val (thisTopic, thisForum, parentForum) = parseStructure(archiverParseResult.breadcrumbs)
@@ -61,7 +59,7 @@ object TopicParser : ArchiverParser<TopicParseResult>() {
                         thisTopic = thisTopic,
                         thisForum = thisForum,
                         parentForum = parentForum,
-                        posts = parsePosts(archiverParseResult.doc),
+                        posts = parsePosts(archiverParseResult.document),
                         pagination = archiverParseResult.pagination
                     )
                 )
@@ -71,6 +69,7 @@ object TopicParser : ArchiverParser<TopicParseResult>() {
 
     /**
      * Validate the accessibility under current state.
+     *
      * @return [TopicParseResult] if denied, null otherwise
      */
     private fun validateDenial(doc: Document): TopicParseResult? {
@@ -100,6 +99,7 @@ object TopicParser : ArchiverParser<TopicParseResult>() {
 
     /**
      * Parse along the relationship structure from the breadcrumbs.
+     *
      * @return a triple of this topic, this forum, and parent forum
      */
     private fun parseStructure(breadcrumbs: List<Breadcrumb>): Triple<Topic, Forum, Forum> {
@@ -118,6 +118,7 @@ object TopicParser : ArchiverParser<TopicParseResult>() {
 
     /**
      * Parse posts list.
+     *
      * @return a list of posts
      */
     private fun parsePosts(doc: Document): List<Post> = doc.select("div.postitem").mapIndexed { index, element ->
@@ -138,6 +139,7 @@ object TopicParser : ArchiverParser<TopicParseResult>() {
 
     /**
      * Extract author and post time from title text.
+     *
      * @return a pair of author name and post time
      */
     private fun parseAuthorAndTime(titleText: String): Pair<String, Date> {

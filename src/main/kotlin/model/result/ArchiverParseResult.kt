@@ -7,7 +7,7 @@ import org.jsoup.nodes.Document
 
 sealed class ArchiverParseResult {
     data class Success(
-        val doc: Document,
+        val document: Document,
         val pageInfo: PageInfo,
         val breadcrumbs: List<Breadcrumb>,
         val pagination: Pagination?
