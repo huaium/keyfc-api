@@ -1,7 +1,7 @@
 package net.keyfc.api.parser
 
 import com.fleeksoft.ksoup.nodes.Document
-import net.keyfc.api.SoupClient
+import net.keyfc.api.RepoClient
 import net.keyfc.api.model.page.Breadcrumb
 import net.keyfc.api.model.page.forum.Topic
 import net.keyfc.api.model.page.index.Forum
@@ -19,7 +19,7 @@ import java.util.regex.Pattern
  *
  * @see <a href="https://keyfc.net/bbs/archiver/showtopic-70169.aspx">KeyFC Topic Sample</a>
  */
-object TopicParser : ArchiverParser() {
+internal object TopicParser : ArchiverParser() {
 
     override val parsePagination = true
 
@@ -28,10 +28,10 @@ object TopicParser : ArchiverParser() {
      *
      * @return parsed topic page data including posts, pagination, etc.
      */
-    suspend fun parse(id: String, cookies: List<HttpCookie> = emptyList()) =
+    suspend fun parse(repoClient: RepoClient, id: String, cookies: List<HttpCookie> = emptyList()) =
         try {
             val archiverParseResult =
-                super.parseArchiver(SoupClient.parse(ARCHIVER_URL + "showtopic-${id}.aspx", cookies))
+                super.parseArchiver(repoClient.parse(ARCHIVER_URL + "showtopic-${id}.aspx", cookies))
 
             when (archiverParseResult) {
                 is ArchiverParseResult.Failure -> TopicParseResult.Failure(
@@ -40,9 +40,11 @@ object TopicParser : ArchiverParser() {
                 )
 
                 is ArchiverParseResult.Success -> {
+                    // Denial validation must be called before parsing breadcrumbs,
+                    // since denial page does not include breadcrumbs
                     validateDenial(archiverParseResult.document)?.let { return it }
 
-                    // Parse structure
+                    // Parse breadcrumbs
                     val (thisTopic, thisForum, parentForum) = parseBreadcrumbs(archiverParseResult.breadcrumbs)
 
                     TopicParseResult.Success(
@@ -62,8 +64,8 @@ object TopicParser : ArchiverParser() {
             TopicParseResult.Failure("Soup client document parsing failed", e)
         }
 
-    suspend fun parse(topic: Topic, cookies: List<HttpCookie> = emptyList()) =
-        parse(topic.id, cookies)
+    suspend fun parse(repoClient: RepoClient, topic: Topic, cookies: List<HttpCookie> = emptyList()) =
+        parse(repoClient, topic.id, cookies)
 
     /**
      * Validate the accessibility under current state.
@@ -99,6 +101,7 @@ object TopicParser : ArchiverParser() {
      * Parse along the relationship structure from the breadcrumbs.
      *
      * @return a triple of this topic, this forum, and parent forum
+     * @throws [IllegalArgumentException] if breadcrumbs is empty
      */
     private fun parseBreadcrumbs(breadcrumbs: List<Breadcrumb>): Triple<Topic, Forum, Forum> {
         if (breadcrumbs.isEmpty())

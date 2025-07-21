@@ -1,19 +1,17 @@
 package net.keyfc.api.auth
 
-import net.keyfc.api.model.result.LoginAuthResult
+import net.keyfc.api.model.result.ManualAuthResult
 import java.net.HttpCookie
 
 /**
  * Handles automatic re-login when cookies expire.
  *
- * Wraps a [LoginAuth] instance and manages cookie expiration automatically.
+ * Wraps a [ManualAuth] instance and manages cookie expiration automatically.
  */
-class AutoLoginAuth(
-    username: String,
-    password: String
-) {
-    // The underlying login auth handler
-    private val loginAuth = LoginAuth(username, password)
+class AutoAuth(username: String, password: String) {
+
+    // The underlying manual auth handler
+    private val manualAuth = ManualAuth(username, password)
 
     /**
      * Get the current cookies, attempting to refresh them if expired.
@@ -22,14 +20,14 @@ class AutoLoginAuth(
      */
     suspend fun getCookies(): List<HttpCookie> {
         // If cookies are valid, return them immediately
-        if (loginAuth.isLoggedIn) {
-            return loginAuth.cookies
+        if (manualAuth.isLoggedInValid) {
+            return manualAuth.getCookies()
         }
 
         // Otherwise, try to log in again
         val result = refreshLogin()
         return when (result) {
-            is LoginAuthResult.Success -> result.cookies
+            is ManualAuthResult.Success -> result.cookies
             else -> throw RuntimeException("Failed to refresh login")
         }
     }
@@ -37,16 +35,16 @@ class AutoLoginAuth(
     /**
      * Force a new login attempt regardless of cookie state.
      *
-     * @return LoginAuthResult indicating the outcome of the login attempt
+     * @return [ManualAuthResult] indicating the outcome of the login attempt
      */
-    suspend fun refreshLogin(): LoginAuthResult {
-        return loginAuth.login()
+    suspend fun refreshLogin(): ManualAuthResult {
+        return manualAuth.login()
     }
 
     /**
      * Clear all stored cookies and log out.
      */
     fun logout() {
-        loginAuth.logout()
+        manualAuth.logout()
     }
 }

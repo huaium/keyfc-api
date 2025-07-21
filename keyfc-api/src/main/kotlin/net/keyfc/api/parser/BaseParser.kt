@@ -4,7 +4,7 @@ import com.fleeksoft.ksoup.nodes.Document
 import net.keyfc.api.model.page.PageInfo
 import net.keyfc.api.model.result.BaseParseResult
 
-abstract class BaseParser {
+internal abstract class BaseParser {
 
     companion object {
         protected const val BASE_URL = "https://keyfc.net/bbs/" // `/` is needed

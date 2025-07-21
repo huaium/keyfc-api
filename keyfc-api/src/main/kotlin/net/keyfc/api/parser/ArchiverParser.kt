@@ -6,7 +6,7 @@ import net.keyfc.api.model.page.Pagination
 import net.keyfc.api.model.result.ArchiverParseResult
 import net.keyfc.api.model.result.BaseParseResult
 
-abstract class ArchiverParser : BaseParser() {
+internal abstract class ArchiverParser : BaseParser() {
 
     companion object {
         protected const val ARCHIVER_URL = BASE_URL + "archiver/" // `/` is needed
@@ -54,12 +54,9 @@ abstract class ArchiverParser : BaseParser() {
     private fun parseBreadcrumbs(doc: Document): List<Breadcrumb> {
         val forumNavLinks = doc.selectFirst("div.forumnav")?.select("a")
 
-        if (forumNavLinks == null)
-            throw IllegalStateException("No breadcrumb navigation found.")
-
-        return forumNavLinks.map {
+        return forumNavLinks?.map {
             Breadcrumb(it.text().trim(), it.attr("href"))
-        }
+        } ?: emptyList()
     }
 
     /**

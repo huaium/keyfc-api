@@ -1,10 +1,10 @@
 package index
 
 import kotlinx.coroutines.runBlocking
-import net.keyfc.api.parser.IndexParser
+import net.keyfc.api.KeyfcClient
 
 fun main() {
-    val result = runBlocking { IndexParser.parse() }
+    val result = runBlocking { KeyfcClient().use { it.fetchIndex() } }
 
     printIndexResult(result)
 }

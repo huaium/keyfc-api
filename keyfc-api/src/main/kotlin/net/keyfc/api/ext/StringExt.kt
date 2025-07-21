@@ -10,7 +10,7 @@ import java.net.URLEncoder
  *
  * @return the decoded string
  */
-fun String.decodeUrl(enc: String = "UTF-8"): String = URLDecoder.decode(this, enc)
+internal fun String.decodeUrl(enc: String = "UTF-8"): String = URLDecoder.decode(this, enc)
 
 /**
  * Encodes a string for URL use.
@@ -19,4 +19,4 @@ fun String.decodeUrl(enc: String = "UTF-8"): String = URLDecoder.decode(this, en
  *
  * @return The encoded string
  */
-fun String.encodeUrl(enc: String = "UTF-8"): String = URLEncoder.encode(this, enc)
+internal fun String.encodeUrl(enc: String = "UTF-8"): String = URLEncoder.encode(this, enc)

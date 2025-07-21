@@ -1,15 +1,12 @@
 package auth
 
 import kotlinx.coroutines.runBlocking
-import net.keyfc.api.auth.LoginAuth
+import net.keyfc.api.auth.ManualAuth
 import net.keyfc.api.ext.toHeaderString
-import net.keyfc.api.model.result.LoginAuthResult
+import net.keyfc.api.model.result.ManualAuthResult
 import java.net.HttpURLConnection
 import java.net.URL
 
-/**
- * Example demonstrating how to use the LoginAuth class for authenticating.
- */
 fun main() {
     // Read credentials from stdin
     print("Enter username: ")
@@ -18,8 +15,8 @@ fun main() {
     print("Enter password: ")
     val password = readLine() ?: ""
 
-    // Create LoginAuth instance
-    val auth = LoginAuth(username, password)
+    // Create auth instance
+    val auth = ManualAuth(username, password)
 
     println("Attempting to login with username: $username")
 
@@ -27,10 +24,10 @@ fun main() {
     val result = runBlocking { auth.login() }
 
     when (result) {
-        is LoginAuthResult.Success -> {
+        is ManualAuthResult.Success -> {
             // Login successful
             println("Login successful!")
-            println("Login status: ${auth.isLoggedIn}")
+            println("Login status: ${auth.isLoggedInValid}")
 
             // Display cookies
             println("\nCookies received:")
@@ -50,27 +47,27 @@ fun main() {
             // Logout
             println("\nLogging out...")
             auth.logout()
-            println("Login status after logout: ${auth.isLoggedIn}")
+            println("Login status after logout: ${auth.isLoggedInValid}")
         }
 
-        is LoginAuthResult.PasswordIncorrectDenial -> {
+        is ManualAuthResult.PasswordIncorrectDenial -> {
             // Password incorrect
             println("Login failed: Password incorrect")
             println("Failing times: ${result.failingTimes}")
             println("Max retries: ${result.maxRetries}")
         }
 
-        is LoginAuthResult.UserNotFoundDenial -> {
+        is ManualAuthResult.UserNotFoundDenial -> {
             // User not found
             println("Login failed: User not found")
         }
 
-        is LoginAuthResult.UnknownDenial -> {
+        is ManualAuthResult.UnknownDenial -> {
             // Unknown failure
             println("Login failed: Unknown")
         }
 
-        is LoginAuthResult.Failure -> {
+        is ManualAuthResult.Failure -> {
             // Other failure
             println("Login failed: ${result.message}")
         }

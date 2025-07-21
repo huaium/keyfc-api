@@ -1,8 +1,5 @@
 package net.keyfc.api.model.page.index
 
-import net.keyfc.api.parser.ForumParser
-import java.net.HttpCookie
-
 data class Forum(
     val name: String,
     val id: String,
@@ -27,9 +24,5 @@ data class Forum(
             // Return the captured group (the digits)
             return matchResult?.groupValues?.getOrNull(1)
         }
-    }
-
-    suspend fun parse(cookies: List<HttpCookie> = emptyList()) {
-        ForumParser.parse(this, cookies)
     }
 }

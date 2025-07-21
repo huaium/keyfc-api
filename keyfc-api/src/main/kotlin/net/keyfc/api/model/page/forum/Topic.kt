@@ -1,8 +1,5 @@
 package net.keyfc.api.model.page.forum
 
-import net.keyfc.api.parser.TopicParser
-import java.net.HttpCookie
-
 data class Topic(
     val title: String,
     val id: String,
@@ -27,9 +24,5 @@ data class Topic(
             // Return the captured group (the digits)
             return matchResult?.groupValues?.getOrNull(1)
         }
-    }
-
-    suspend fun parse(cookies: List<HttpCookie> = emptyList()) {
-        TopicParser.parse(this, cookies)
     }
 }

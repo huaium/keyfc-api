@@ -1,7 +1,7 @@
 package net.keyfc.api.parser
 
 import com.fleeksoft.ksoup.nodes.Element
-import net.keyfc.api.SoupClient
+import net.keyfc.api.RepoClient
 import net.keyfc.api.model.page.index.Forum
 import net.keyfc.api.model.page.index.IndexPage
 import net.keyfc.api.model.result.ArchiverParseResult
@@ -13,7 +13,7 @@ import java.net.HttpCookie
  *
  * @see <a href="https://keyfc.net/bbs/archiver/index.aspx">KeyFC Index</a>
  */
-object IndexParser : ArchiverParser() {
+internal object IndexParser : ArchiverParser() {
     /**
      * Parse state class that holds temporary state during processing.
      */
@@ -77,9 +77,9 @@ object IndexParser : ArchiverParser() {
      *
      * If parsing fails, this method will return [IndexParseResult.Failure] with the error message and exception.
      */
-    suspend fun parse(cookies: List<HttpCookie> = emptyList()): IndexParseResult =
+    suspend fun parse(repoClient: RepoClient, cookies: List<HttpCookie> = emptyList()): IndexParseResult =
         try {
-            val archiverParseResult = super.parseArchiver(SoupClient.parse(ARCHIVER_URL + "index.aspx", cookies))
+            val archiverParseResult = super.parseArchiver(repoClient.parse(ARCHIVER_URL + "index.aspx", cookies))
 
             when (archiverParseResult) {
                 is ArchiverParseResult.Failure -> IndexParseResult.Failure(

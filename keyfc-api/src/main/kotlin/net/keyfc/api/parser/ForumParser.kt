@@ -1,7 +1,7 @@
 package net.keyfc.api.parser
 
 import com.fleeksoft.ksoup.nodes.Document
-import net.keyfc.api.SoupClient
+import net.keyfc.api.RepoClient
 import net.keyfc.api.model.page.Breadcrumb
 import net.keyfc.api.model.page.forum.ForumPage
 import net.keyfc.api.model.page.forum.Topic
@@ -16,7 +16,7 @@ import java.util.regex.Pattern
  *
  * @see <a href="https://keyfc.net/bbs/archiver/showforum-52.aspx">KeyFC Forum Sample</a>
  */
-object ForumParser : ArchiverParser() {
+internal object ForumParser : ArchiverParser() {
 
     override val parsePagination = true
 
@@ -30,10 +30,10 @@ object ForumParser : ArchiverParser() {
      *
      * Or, if parsing fails, it will return [ForumParseResult.Failure] with the error message and exception.
      */
-    suspend fun parse(id: String, cookies: List<HttpCookie> = emptyList()) =
+    suspend fun parse(repoClient: RepoClient, id: String, cookies: List<HttpCookie> = emptyList()) =
         try {
             val archiverParseResult =
-                super.parseArchiver(SoupClient.parse(ARCHIVER_URL + "showforum-${id}.aspx", cookies))
+                super.parseArchiver(repoClient.parse(ARCHIVER_URL + "showforum-${id}.aspx", cookies))
 
             when (archiverParseResult) {
                 is ArchiverParseResult.Failure -> ForumParseResult.Failure(
@@ -42,6 +42,8 @@ object ForumParser : ArchiverParser() {
                 )
 
                 is ArchiverParseResult.Success -> {
+                    // Denial validation must be called before parsing breadcrumbs,
+                    // since denial page does not include breadcrumbs
                     validateDenial(archiverParseResult.document)?.let { return it }
 
                     val (thisForum, parentForum) = parseBreadcrumbs(archiverParseResult.breadcrumbs)
@@ -62,8 +64,8 @@ object ForumParser : ArchiverParser() {
             ForumParseResult.Failure("Soup client document parsing failed", e)
         }
 
-    suspend fun parse(forum: Forum, cookies: List<HttpCookie> = emptyList()) =
-        parse(forum.id, cookies)
+    suspend fun parse(repoClient: RepoClient, forum: Forum, cookies: List<HttpCookie> = emptyList()) =
+        parse(repoClient, forum.id, cookies)
 
     /**
      * Validate the accessibility under current state.
@@ -85,7 +87,7 @@ object ForumParser : ArchiverParser() {
 
 
     /**
-     * Parse forum structure.
+     * Parse along the relationship structure from the breadcrumbs.
      *
      * @return a pair of this forum and its parent forum
      * @throws [IllegalArgumentException] if breadcrumbs is empty

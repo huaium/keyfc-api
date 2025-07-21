@@ -1,10 +1,10 @@
 package forum
 
 import kotlinx.coroutines.runBlocking
-import net.keyfc.api.parser.ForumParser
+import net.keyfc.api.KeyfcClient
 
 fun main() {
-    val result = runBlocking { ForumParser.parse("x") }
+    val result = runBlocking { KeyfcClient().use { it.fetchForum("x") } }
 
     printForumResult(result)
 }
