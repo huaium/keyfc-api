@@ -1,4 +1,4 @@
-# KeyfcApi
+# keyfc-api
 
 A library for parsing [KeyFC](https://keyfc.net/bbs/archiver/) pages into structured data classes for Kotlin and Java.
 
@@ -16,9 +16,9 @@ A library for parsing [KeyFC](https://keyfc.net/bbs/archiver/) pages into struct
 - [ ] [My posts](https://keyfc.net/bbs/myposts.aspx)
 - [ ] [My favourites](https://keyfc.net/bbs/usercpsubscribe.aspx)
 
-## Examples
+## Example
 
-See [examples](examples).
+See [example](example).
 
 ## License
 
