@@ -1,7 +1,7 @@
 package net.keyfc.api
 
-import net.keyfc.api.model.page.forum.Topic
-import net.keyfc.api.model.page.index.Forum
+import net.keyfc.api.model.forum.Topic
+import net.keyfc.api.model.index.Forum
 import net.keyfc.api.parser.*
 import java.net.HttpCookie
 
@@ -32,4 +32,7 @@ class KeyfcClient : AutoCloseable {
 
     suspend fun fetchUc(cookies: List<HttpCookie> = emptyList()) =
         UcParser.parse(repoClient, cookies)
+
+    suspend fun fetchNotifications(cookies: List<HttpCookie> = emptyList(), filter: String = "all") =
+        NotificationParser.parse(repoClient, cookies, filter)
 }

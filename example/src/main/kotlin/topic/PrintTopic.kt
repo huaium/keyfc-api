@@ -1,6 +1,6 @@
 package topic
 
-import net.keyfc.api.model.result.parse.TopicParseResult
+import net.keyfc.api.result.parse.TopicParseResult
 
 fun printTopic(result: TopicParseResult) {
     when (result) {

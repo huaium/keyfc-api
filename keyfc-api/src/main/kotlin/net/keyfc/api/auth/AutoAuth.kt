@@ -1,6 +1,6 @@
 package net.keyfc.api.auth
 
-import net.keyfc.api.model.result.ManualAuthResult
+import net.keyfc.api.result.ManualAuthResult
 import java.net.HttpCookie
 
 /**

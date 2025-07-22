@@ -12,7 +12,7 @@ A library for parsing [KeyFC](https://keyfc.net/bbs/archiver/) pages into struct
 - [x] [Login](https://keyfc.net/bbs/login.aspx)
 - [x] [Search](https://keyfc.net/bbs/search.aspx)
 - [x] [User center](https://keyfc.net/bbs/usercp.aspx)
-- [ ] [Notification](https://keyfc.net/bbs/usercpnotice.aspx?filter=all)
+- [x] [Notification](https://keyfc.net/bbs/usercpnotice.aspx?filter=all)
 - [ ] [Inbox](https://keyfc.net/bbs/usercpinbox.aspx)
 - [ ] [My topics](https://keyfc.net/bbs/mytopics.aspx)
 - [ ] [My posts](https://keyfc.net/bbs/myposts.aspx)

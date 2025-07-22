@@ -2,10 +2,10 @@ package net.keyfc.api.parser
 
 import com.fleeksoft.ksoup.nodes.Element
 import net.keyfc.api.RepoClient
-import net.keyfc.api.model.page.index.Forum
-import net.keyfc.api.model.page.index.IndexPage
-import net.keyfc.api.model.result.parse.ArchiverParseResult
-import net.keyfc.api.model.result.parse.IndexParseResult
+import net.keyfc.api.model.index.Forum
+import net.keyfc.api.model.index.IndexPage
+import net.keyfc.api.result.parse.ArchiverParseResult
+import net.keyfc.api.result.parse.IndexParseResult
 import java.net.HttpCookie
 
 /**

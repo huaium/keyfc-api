@@ -2,13 +2,13 @@ package net.keyfc.api.parser
 
 import com.fleeksoft.ksoup.nodes.Document
 import net.keyfc.api.RepoClient
-import net.keyfc.api.model.page.Breadcrumb
-import net.keyfc.api.model.page.forum.Topic
-import net.keyfc.api.model.page.index.Forum
-import net.keyfc.api.model.page.topic.Post
-import net.keyfc.api.model.page.topic.TopicPage
-import net.keyfc.api.model.result.parse.ArchiverParseResult
-import net.keyfc.api.model.result.parse.TopicParseResult
+import net.keyfc.api.model.Breadcrumb
+import net.keyfc.api.model.forum.Topic
+import net.keyfc.api.model.index.Forum
+import net.keyfc.api.result.parse.ArchiverParseResult
+import net.keyfc.api.result.parse.TopicParseResult
+import net.keyfc.api.model.topic.Post
+import net.keyfc.api.model.topic.TopicPage
 import java.net.HttpCookie
 import java.text.SimpleDateFormat
 import java.util.*

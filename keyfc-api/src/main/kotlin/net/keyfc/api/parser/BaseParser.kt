@@ -1,8 +1,8 @@
 package net.keyfc.api.parser
 
 import com.fleeksoft.ksoup.nodes.Document
-import net.keyfc.api.model.page.PageInfo
-import net.keyfc.api.model.result.parse.BaseParseResult
+import net.keyfc.api.model.PageInfo
+import net.keyfc.api.result.parse.BaseParseResult
 
 internal abstract class BaseParser {
 

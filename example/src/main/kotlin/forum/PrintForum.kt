@@ -1,6 +1,6 @@
 package forum
 
-import net.keyfc.api.model.result.parse.ForumParseResult
+import net.keyfc.api.result.parse.ForumParseResult
 
 fun printForum(result: ForumParseResult) {
     when (result) {

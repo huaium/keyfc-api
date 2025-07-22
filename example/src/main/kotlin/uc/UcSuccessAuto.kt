@@ -2,7 +2,7 @@ package uc
 
 import kotlinx.coroutines.runBlocking
 import net.keyfc.api.KeyfcAutoClient
-import net.keyfc.api.model.result.FetchResult
+import net.keyfc.api.result.FetchResult
 
 fun main() {
     // Read credentials from stdin

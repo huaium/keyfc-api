@@ -1,6 +1,6 @@
 package uc
 
-import net.keyfc.api.model.result.parse.UcParseResult
+import net.keyfc.api.result.parse.UcParseResult
 
 fun printUc(result: UcParseResult) {
     when (result) {

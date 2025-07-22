@@ -1,9 +1,9 @@
 package net.keyfc.api
 
 import net.keyfc.api.auth.AutoAuth
-import net.keyfc.api.model.page.forum.Topic
-import net.keyfc.api.model.page.index.Forum
-import net.keyfc.api.model.result.FetchResult
+import net.keyfc.api.model.forum.Topic
+import net.keyfc.api.model.index.Forum
+import net.keyfc.api.result.FetchResult
 import java.net.HttpCookie
 
 class KeyfcAutoClient(username: String, password: String) : AutoCloseable {
@@ -20,7 +20,7 @@ class KeyfcAutoClient(username: String, password: String) : AutoCloseable {
     }
 
     suspend fun fetchIndex(autoLogin: Boolean = true) =
-        fetchWrapper(
+        fetch(
             autoLogin = autoLogin,
             callWithCookies = { cookies ->
                 keyfcClient.fetchIndex(cookies)
@@ -31,7 +31,7 @@ class KeyfcAutoClient(username: String, password: String) : AutoCloseable {
         )
 
     suspend fun fetchForum(id: String, autoLogin: Boolean = true) =
-        fetchWrapper(
+        fetch(
             autoLogin = autoLogin,
             callWithCookies = { cookies ->
                 keyfcClient.fetchForum(id, cookies)
@@ -45,7 +45,7 @@ class KeyfcAutoClient(username: String, password: String) : AutoCloseable {
         fetchForum(forum.id, autoLogin)
 
     suspend fun fetchTopic(id: String, autoLogin: Boolean = true) =
-        fetchWrapper(
+        fetch(
             autoLogin = autoLogin,
             callWithCookies = { cookies ->
                 keyfcClient.fetchTopic(id, cookies)
@@ -59,17 +59,24 @@ class KeyfcAutoClient(username: String, password: String) : AutoCloseable {
         fetchTopic(topic.id, autoLogin)
 
     suspend fun search(keyword: String, autoLogin: Boolean = true) =
-        fetchWrapperWithCookies(
+        fetchWithCookies(
             autoLogin = autoLogin,
         ) { cookies ->
             keyfcClient.search(keyword, cookies)
         }
 
     suspend fun fetchUc(autoLogin: Boolean = true) =
-        fetchWrapperWithCookies(
+        fetchWithCookies(
             autoLogin = autoLogin,
         ) { cookies ->
             keyfcClient.fetchUc(cookies)
+        }
+
+    suspend fun fetchNotifications(autoLogin: Boolean = true, filter: String = "all") =
+        fetchWithCookies(
+            autoLogin = autoLogin,
+        ) { cookies ->
+            keyfcClient.fetchNotifications(cookies, filter)
         }
 
     fun logout() {
@@ -87,13 +94,13 @@ class KeyfcAutoClient(username: String, password: String) : AutoCloseable {
      * @param callWithoutCookies Function that performs the API call without authentication
      * @return [FetchResult] wrapping the API call result with appropriate login state
      */
-    private suspend inline fun <T> fetchWrapper(
+    private suspend inline fun <T> fetch(
         autoLogin: Boolean = true,
         crossinline callWithCookies: suspend (cookies: List<HttpCookie>) -> T,
         crossinline callWithoutCookies: suspend () -> T
     ): FetchResult<T> {
         return try {
-            fetchWrapperWithCookies(autoLogin, callWithCookies = callWithCookies)
+            fetchWithCookies(autoLogin, callWithCookies = callWithCookies)
         } catch (_: Exception) {
             try {
                 // If authenticated call fails, try unauthenticated call
@@ -107,7 +114,7 @@ class KeyfcAutoClient(username: String, password: String) : AutoCloseable {
         }
     }
 
-    private suspend inline fun <T> fetchWrapperWithCookies(
+    private suspend inline fun <T> fetchWithCookies(
         autoLogin: Boolean = true,
         crossinline callWithCookies: suspend (cookies: List<HttpCookie>) -> T,
     ): FetchResult<T> {

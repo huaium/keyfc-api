@@ -3,9 +3,9 @@ package net.keyfc.api.parser
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import net.keyfc.api.RepoClient
-import net.keyfc.api.model.page.uc.*
-import net.keyfc.api.model.result.parse.BaseParseResult
-import net.keyfc.api.model.result.parse.UcParseResult
+import net.keyfc.api.model.uc.*
+import net.keyfc.api.result.parse.BaseParseResult
+import net.keyfc.api.result.parse.UcParseResult
 import java.net.HttpCookie
 
 /**

@@ -3,7 +3,7 @@ package auth
 import kotlinx.coroutines.runBlocking
 import net.keyfc.api.auth.ManualAuth
 import net.keyfc.api.ext.toHeaderString
-import net.keyfc.api.model.result.ManualAuthResult
+import net.keyfc.api.result.ManualAuthResult
 import java.net.HttpURLConnection
 import java.net.URI
 

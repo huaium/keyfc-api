@@ -1,7 +1,7 @@
 package index
 
-import net.keyfc.api.model.page.index.Forum
-import net.keyfc.api.model.result.parse.IndexParseResult
+import net.keyfc.api.model.index.Forum
+import net.keyfc.api.result.parse.IndexParseResult
 
 fun printIndex(result: IndexParseResult) {
     when (result) {

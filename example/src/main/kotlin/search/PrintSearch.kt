@@ -1,7 +1,7 @@
 package search
 
-import net.keyfc.api.model.page.search.SearchItem
-import net.keyfc.api.model.result.parse.SearchParseResult
+import net.keyfc.api.model.search.SearchItem
+import net.keyfc.api.result.parse.SearchParseResult
 import java.time.format.DateTimeFormatter
 
 fun printSearch(result: SearchParseResult) {

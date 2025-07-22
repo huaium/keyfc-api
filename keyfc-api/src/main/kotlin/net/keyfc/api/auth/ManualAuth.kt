@@ -3,7 +3,7 @@ package net.keyfc.api.auth
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.keyfc.api.RepoClient
-import net.keyfc.api.model.result.ManualAuthResult
+import net.keyfc.api.result.ManualAuthResult
 import java.io.IOException
 import java.net.HttpCookie
 import java.time.Instant
