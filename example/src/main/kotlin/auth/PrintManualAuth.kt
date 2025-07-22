@@ -5,7 +5,7 @@ import net.keyfc.api.auth.ManualAuth
 import net.keyfc.api.ext.toHeaderString
 import net.keyfc.api.model.result.ManualAuthResult
 import java.net.HttpURLConnection
-import java.net.URL
+import java.net.URI
 
 fun main() {
     // Read credentials from stdin
@@ -81,7 +81,7 @@ private fun testLoggedInRequest(cookieHeader: String) {
     try {
         // Create a connection to a page that requires login
         val url = "https://keyfc.net/bbs/usercp.aspx"
-        val connection = URL(url).openConnection() as HttpURLConnection
+        val connection = URI(url).toURL().openConnection() as HttpURLConnection
 
         // Set the cookie header with our login cookies
         connection.setRequestProperty("Cookie", cookieHeader)

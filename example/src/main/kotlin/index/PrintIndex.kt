@@ -1,9 +1,9 @@
 package index
 
 import net.keyfc.api.model.page.index.Forum
-import net.keyfc.api.model.result.IndexParseResult
+import net.keyfc.api.model.result.parse.IndexParseResult
 
-fun printIndexResult(result: IndexParseResult) {
+fun printIndex(result: IndexParseResult) {
     when (result) {
         is IndexParseResult.Success -> {
             val indexPage = result.indexPage

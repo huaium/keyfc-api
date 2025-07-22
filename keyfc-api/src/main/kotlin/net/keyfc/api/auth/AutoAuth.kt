@@ -13,14 +13,23 @@ class AutoAuth(username: String, password: String) {
     // The underlying manual auth handler
     private val manualAuth = ManualAuth(username, password)
 
+    val isLoggedInValid: Boolean
+        get() = manualAuth.isLoggedInValid
+
+    val isLoggedIn: Boolean
+        get() = manualAuth.isLoggedIn
+
     /**
      * Get the current cookies, attempting to refresh them if expired.
      *
+     * Remind that cookies returned can be empty when [autoLogin] is false, so it is recommended to check [isLoggedIn].
+     *
      * @return List of valid HttpCookie objects
+     * @throws [RuntimeException] if it cannot return valid cookies
      */
-    suspend fun getCookies(): List<HttpCookie> {
-        // If cookies are valid, return them immediately
-        if (manualAuth.isLoggedInValid) {
+    suspend fun getCookies(autoLogin: Boolean = true): List<HttpCookie> {
+        // If cookies are valid, or auto login is disabled, return them immediately
+        if (manualAuth.isLoggedInValid || !autoLogin) {
             return manualAuth.getCookies()
         }
 
@@ -28,7 +37,10 @@ class AutoAuth(username: String, password: String) {
         val result = refreshLogin()
         return when (result) {
             is ManualAuthResult.Success -> result.cookies
-            else -> throw RuntimeException("Failed to refresh login")
+            is ManualAuthResult.PasswordIncorrectDenial -> throw RuntimeException("Password incorrect. Failing times: ${result.failingTimes}; Max retries: ${result.maxRetries}")
+            is ManualAuthResult.UserNotFoundDenial -> throw RuntimeException(result.message)
+            is ManualAuthResult.UnknownDenial -> throw RuntimeException(result.message)
+            is ManualAuthResult.Failure -> throw RuntimeException("Login failed")
         }
     }
 

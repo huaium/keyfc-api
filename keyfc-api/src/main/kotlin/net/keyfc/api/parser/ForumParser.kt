@@ -6,8 +6,8 @@ import net.keyfc.api.model.page.Breadcrumb
 import net.keyfc.api.model.page.forum.ForumPage
 import net.keyfc.api.model.page.forum.Topic
 import net.keyfc.api.model.page.index.Forum
-import net.keyfc.api.model.result.ArchiverParseResult
-import net.keyfc.api.model.result.ForumParseResult
+import net.keyfc.api.model.result.parse.ArchiverParseResult
+import net.keyfc.api.model.result.parse.ForumParseResult
 import java.net.HttpCookie
 import java.util.regex.Pattern
 
@@ -33,7 +33,7 @@ internal object ForumParser : ArchiverParser() {
     suspend fun parse(repoClient: RepoClient, id: String, cookies: List<HttpCookie> = emptyList()) =
         try {
             val archiverParseResult =
-                super.parseArchiver(repoClient.parse(ARCHIVER_URL + "showforum-${id}.aspx", cookies))
+                super.parseArchiver(repoClient.parseUrl(ARCHIVER_URL + "showforum-${id}.aspx", cookies))
 
             when (archiverParseResult) {
                 is ArchiverParseResult.Failure -> ForumParseResult.Failure(

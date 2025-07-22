@@ -6,9 +6,12 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import net.keyfc.api.ext.addRawCookies
 import java.net.HttpCookie
 
 internal class RepoClient {
@@ -22,6 +25,7 @@ internal class RepoClient {
         HttpClient(CIO) {
             install(DefaultRequest) {
                 header("User-Agent", USER_AGENT)
+
             }
         }
     }
@@ -32,7 +36,7 @@ internal class RepoClient {
         httpClient.close()
     }
 
-    suspend fun parse(url: String, cookies: List<HttpCookie> = emptyList()): Document {
+    suspend fun parseUrl(url: String, cookies: List<HttpCookie> = emptyList()): Document {
         val response = getResponse(url, cookies)
 
         // IO is heavy, so we need to run it in a separate thread
@@ -41,22 +45,33 @@ internal class RepoClient {
         }
     }
 
-    suspend fun parse(html: String): Document {
+    suspend fun parseHtml(html: String): Document {
         return withContext(context) {
             Ksoup.parse(html)
         }
     }
 
-    suspend inline fun post(
+    suspend inline fun postFormData(
         url: String,
-        block: HttpRequestBuilder.() -> Unit = {}
-    ) = httpClient.post(url, block)
+        formDataMap: Map<String, String>,
+        cookies: List<HttpCookie> = emptyList(),
+    ): HttpResponse {
+        val response = httpClient.post(url) {
+            setBody(FormDataContent(Parameters.build {
+                formDataMap.forEach { (key, value) ->
+                    append(key, value)
+                }
+            }))
+
+            addRawCookies(cookies)
+        }
+
+        return response
+    }
 
     private suspend fun getResponse(url: String, cookies: List<HttpCookie> = emptyList()): HttpResponse {
         val response = httpClient.get(url) {
-            cookies.forEach {
-                cookie(it.name, it.value)
-            }
+            addRawCookies(cookies)
         }
 
         if (response.status.value != 200) {

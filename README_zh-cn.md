@@ -1,28 +1,28 @@
 # keyfc-api
 
-English | [中文](README_zh-cn.md)
+[English](README.md) | 中文
 
-A library for parsing [KeyFC](https://keyfc.net/bbs/archiver/) pages into structured data classes for Kotlin and Java.
+用于解析 [KeyFC](https://keyfc.net/bbs/archiver/) 页面为结构化数据类的库，为 Kotlin 和 Java 设计。
 
-## Supported
+## 支持
 
-- [x] [Index (archiver)](https://keyfc.net/bbs/archiver/index.aspx)
-- [x] [Forum (archiver)](https://keyfc.net/bbs/archiver/showforum-52.aspx)
-- [x] [Topic (archiver)](https://keyfc.net/bbs/archiver/showtopic-70169.aspx)
-- [x] [Login](https://keyfc.net/bbs/login.aspx)
-- [x] [Search](https://keyfc.net/bbs/search.aspx)
-- [ ] [User center](https://keyfc.net/bbs/usercp.aspx)
-- [ ] [Notification](https://keyfc.net/bbs/usercpnotice.aspx?filter=all)
-- [ ] [Inbox](https://keyfc.net/bbs/usercpinbox.aspx)
-- [ ] [My topics](https://keyfc.net/bbs/mytopics.aspx)
-- [ ] [My posts](https://keyfc.net/bbs/myposts.aspx)
-- [ ] [My favourites](https://keyfc.net/bbs/usercpsubscribe.aspx)
+- [x] [主页 (archiver)](https://keyfc.net/bbs/archiver/index.aspx)
+- [x] [论坛 (archiver)](https://keyfc.net/bbs/archiver/showforum-52.aspx)
+- [x] [帖子 (archiver)](https://keyfc.net/bbs/archiver/showtopic-70169.aspx)
+- [x] [登录](https://keyfc.net/bbs/login.aspx)
+- [x] [搜索](https://keyfc.net/bbs/search.aspx)
+- [ ] [用户中心](https://keyfc.net/bbs/usercp.aspx)
+- [ ] [通知](https://keyfc.net/bbs/usercpnotice.aspx?filter=all)
+- [ ] [收件箱](https://keyfc.net/bbs/usercpinbox.aspx)
+- [ ] [我的主题](https://keyfc.net/bbs/mytopics.aspx)
+- [ ] [我的帖子](https://keyfc.net/bbs/myposts.aspx)
+- [ ] [收藏夹](https://keyfc.net/bbs/usercpsubscribe.aspx)
 
-## Example
+## 用例
 
-See [example](example).
+请查阅 [example](example).
 
-## License
+## 许可证
 
 ```
 MIT License

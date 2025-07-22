@@ -7,8 +7,8 @@ import net.keyfc.api.model.page.forum.Topic
 import net.keyfc.api.model.page.index.Forum
 import net.keyfc.api.model.page.topic.Post
 import net.keyfc.api.model.page.topic.TopicPage
-import net.keyfc.api.model.result.ArchiverParseResult
-import net.keyfc.api.model.result.TopicParseResult
+import net.keyfc.api.model.result.parse.ArchiverParseResult
+import net.keyfc.api.model.result.parse.TopicParseResult
 import java.net.HttpCookie
 import java.text.SimpleDateFormat
 import java.util.*
@@ -31,7 +31,7 @@ internal object TopicParser : ArchiverParser() {
     suspend fun parse(repoClient: RepoClient, id: String, cookies: List<HttpCookie> = emptyList()) =
         try {
             val archiverParseResult =
-                super.parseArchiver(repoClient.parse(ARCHIVER_URL + "showtopic-${id}.aspx", cookies))
+                super.parseArchiver(repoClient.parseUrl(ARCHIVER_URL + "showtopic-${id}.aspx", cookies))
 
             when (archiverParseResult) {
                 is ArchiverParseResult.Failure -> TopicParseResult.Failure(

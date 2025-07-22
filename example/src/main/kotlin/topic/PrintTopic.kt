@@ -1,8 +1,8 @@
 package topic
 
-import net.keyfc.api.model.result.TopicParseResult
+import net.keyfc.api.model.result.parse.TopicParseResult
 
-fun printTopicResult(result: TopicParseResult) {
+fun printTopic(result: TopicParseResult) {
     when (result) {
         is TopicParseResult.Success -> {
             val topicPage = result.topicPage

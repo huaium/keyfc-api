@@ -1,8 +1,8 @@
 package forum
 
-import net.keyfc.api.model.result.ForumParseResult
+import net.keyfc.api.model.result.parse.ForumParseResult
 
-fun printForumResult(result: ForumParseResult) {
+fun printForum(result: ForumParseResult) {
     when (result) {
         is ForumParseResult.Success -> {
             val forumPage = result.forumPage

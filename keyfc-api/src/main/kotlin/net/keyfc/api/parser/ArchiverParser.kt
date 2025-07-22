@@ -3,8 +3,8 @@ package net.keyfc.api.parser
 import com.fleeksoft.ksoup.nodes.Document
 import net.keyfc.api.model.page.Breadcrumb
 import net.keyfc.api.model.page.Pagination
-import net.keyfc.api.model.result.ArchiverParseResult
-import net.keyfc.api.model.result.BaseParseResult
+import net.keyfc.api.model.result.parse.ArchiverParseResult
+import net.keyfc.api.model.result.parse.BaseParseResult
 
 internal abstract class ArchiverParser : BaseParser() {
 

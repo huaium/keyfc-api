@@ -4,8 +4,8 @@ import com.fleeksoft.ksoup.nodes.Element
 import net.keyfc.api.RepoClient
 import net.keyfc.api.model.page.index.Forum
 import net.keyfc.api.model.page.index.IndexPage
-import net.keyfc.api.model.result.ArchiverParseResult
-import net.keyfc.api.model.result.IndexParseResult
+import net.keyfc.api.model.result.parse.ArchiverParseResult
+import net.keyfc.api.model.result.parse.IndexParseResult
 import java.net.HttpCookie
 
 /**
@@ -79,7 +79,7 @@ internal object IndexParser : ArchiverParser() {
      */
     suspend fun parse(repoClient: RepoClient, cookies: List<HttpCookie> = emptyList()): IndexParseResult =
         try {
-            val archiverParseResult = super.parseArchiver(repoClient.parse(ARCHIVER_URL + "index.aspx", cookies))
+            val archiverParseResult = super.parseArchiver(repoClient.parseUrl(ARCHIVER_URL + "index.aspx", cookies))
 
             when (archiverParseResult) {
                 is ArchiverParseResult.Failure -> IndexParseResult.Failure(

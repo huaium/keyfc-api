@@ -1,4 +1,4 @@
-package net.keyfc.api.model.result
+package net.keyfc.api.model.result.parse
 
 import com.fleeksoft.ksoup.nodes.Document
 import net.keyfc.api.model.page.PageInfo

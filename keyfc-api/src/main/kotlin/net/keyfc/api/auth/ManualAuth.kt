@@ -1,7 +1,5 @@
 package net.keyfc.api.auth
 
-import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.keyfc.api.RepoClient
@@ -36,26 +34,10 @@ class ManualAuth(val username: String, val password: String) {
      * Indicates if a user is currently logged in.
      */
     val isLoggedInValid: Boolean
-        get() = _cookies.isNotEmpty() && !isSessionExpired()
+        get() = isLoggedIn && !isSessionExpired()
 
-    /**
-     * Check if the session has expired based on the 'expires' cookie.
-     *
-     * @return True if the session has expired or no expiration cookie is found, false otherwise
-     */
-    fun isSessionExpired(): Boolean {
-        val expiresCookie = _cookies.find { it.name == "expires" } ?: return true
-
-        return try {
-            val expirationTime = Instant.parse(expiresCookie.value)
-            val currentTime = Instant.now()
-
-            currentTime.isAfter(expirationTime)
-        } catch (_: Exception) {
-            // If we can't parse the expiration date, assume the session is expired
-            true
-        }
-    }
+    val isLoggedIn: Boolean
+        get() = _cookies.isNotEmpty()
 
     /**
      * Login to the forum with provided username and password.
@@ -68,19 +50,17 @@ class ManualAuth(val username: String, val password: String) {
         val repoClient = RepoClient()
 
         try {
-            // Build form parameters
-            val parameters = Parameters.build {
-                append("username", username)
-                append("password", password)
-                append("templateid", TEMPLATE_ID)
-                append("login", LOGIN)
-                append("expires", DEFAULT_EXPIRES)
-            }
-
             // Execute request
-            val response = repoClient.post("$LOGIN_URL?stamp=${Math.random()}") {
-                setBody(FormDataContent(parameters))
-            }
+            val response = repoClient.postFormData(
+                url = "$LOGIN_URL?stamp=${Math.random()}",
+                formDataMap = mapOf(
+                    "username" to username,
+                    "password" to password,
+                    "templateid" to TEMPLATE_ID,
+                    "login" to LOGIN,
+                    "expires" to DEFAULT_EXPIRES
+                )
+            )
 
             if (response.status.isSuccess()) {
                 return tackleLoggedInPage(repoClient, response)
@@ -94,6 +74,25 @@ class ManualAuth(val username: String, val password: String) {
             return ManualAuthResult.Failure("Error occurred during login: ${e.message}", e)
         } finally {
             repoClient.close()
+        }
+    }
+
+    /**
+     * Check if the session has expired based on the 'expires' cookie.
+     *
+     * @return True if the session has expired or no expiration cookie is found, false otherwise
+     */
+    private fun isSessionExpired(): Boolean {
+        val expiresCookie = _cookies.find { it.name == "expires" } ?: return true
+
+        return try {
+            val expirationTime = Instant.parse(expiresCookie.value)
+            val currentTime = Instant.now()
+
+            currentTime.isAfter(expirationTime)
+        } catch (_: Exception) {
+            // If we can't parse the expiration date, assume the session is expired
+            true
         }
     }
 
@@ -113,7 +112,7 @@ class ManualAuth(val username: String, val password: String) {
     private suspend fun tackleLoggedInPage(repoClient: RepoClient, response: HttpResponse): ManualAuthResult {
         try {
             // Parse the HTML document
-            val document = repoClient.parse(response.bodyAsText())
+            val document = repoClient.parseHtml(response.bodyAsText())
 
             // Find the element containing the error message
             val errorMsg = document.select("div.msg_inner.error_msg p").first()?.text()

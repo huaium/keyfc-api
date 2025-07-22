@@ -4,6 +4,7 @@ import net.keyfc.api.model.page.forum.Topic
 import net.keyfc.api.model.page.index.Forum
 import net.keyfc.api.parser.ForumParser
 import net.keyfc.api.parser.IndexParser
+import net.keyfc.api.parser.SearchParser
 import net.keyfc.api.parser.TopicParser
 import java.net.HttpCookie
 
@@ -28,4 +29,7 @@ class KeyfcClient : AutoCloseable {
 
     suspend fun fetchTopic(topic: Topic, cookies: List<HttpCookie> = emptyList()) =
         TopicParser.parse(repoClient, topic, cookies)
+
+    suspend fun search(keyword: String, cookies: List<HttpCookie> = emptyList()) =
+        SearchParser.search(repoClient, keyword, cookies)
 }
