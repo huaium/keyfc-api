@@ -3,11 +3,12 @@ package net.keyfc.api.parser
 import com.fleeksoft.ksoup.nodes.Document
 import io.ktor.client.statement.*
 import net.keyfc.api.RepoClient
-import net.keyfc.api.model.page.search.ForumReference
+import net.keyfc.api.model.page.PageInfo
+import net.keyfc.api.model.page.index.Forum
 import net.keyfc.api.model.page.search.LastPost
 import net.keyfc.api.model.page.search.SearchItem
 import net.keyfc.api.model.page.search.SearchPage
-import net.keyfc.api.model.page.search.UserReference
+import net.keyfc.api.model.page.search.User
 import net.keyfc.api.model.result.parse.BaseParseResult
 import net.keyfc.api.model.result.parse.SearchParseResult
 import java.net.HttpCookie
@@ -29,7 +30,7 @@ internal object SearchParser : BaseParser() {
      * @param repoClient The repository client to use for HTTP requests
      * @param keyword The search keyword
      * @param cookies The cookies to include in the request
-     * @return SearchParseResult containing the search redirection link if found
+     * @return [SearchParseResult] containing the search redirection link if found
      */
     suspend fun search(
         repoClient: RepoClient,
@@ -99,7 +100,10 @@ internal object SearchParser : BaseParser() {
                             RuntimeException("Failed to extract search redirection link: No link found")
                         )
 
-                    parseResultPage(repoClient.parseUrl(BASE_URL + redirectLink, cookies))
+                    parseResultPage(
+                        document = repoClient.parseUrl(BASE_URL + redirectLink, cookies),
+                        pageInfo = baseResult.pageInfo
+                    )
                 } catch (e: Exception) {
                     SearchParseResult.Failure(
                         "Failed to extract search redirection link: ${e.message}",
@@ -114,7 +118,7 @@ internal object SearchParser : BaseParser() {
         }
     }
 
-    fun parseResultPage(document: Document): SearchParseResult {
+    fun parseResultPage(document: Document, pageInfo: PageInfo): SearchParseResult {
         try {
             // Extract total results count
             val channelInfoText = document.selectFirst("p.channelinfo")?.text() ?: ""
@@ -181,15 +185,13 @@ internal object SearchParser : BaseParser() {
                     id = topicId,
                     title = title,
                     url = topicUrl,
-                    forum = ForumReference(
-                        id = forumId,
+                    forum = Forum(
                         name = forumName,
-                        url = forumUrl
+                        id = forumId,
                     ),
-                    author = UserReference(
+                    author = User(
                         id = authorId,
                         name = authorName,
-                        url = authorUrl
                     ),
                     postDate = postDate,
                     replyCount = replyCount,
@@ -197,10 +199,9 @@ internal object SearchParser : BaseParser() {
                     lastPost = LastPost(
                         date = lastPostDate,
                         url = lastPostUrl,
-                        author = UserReference(
+                        author = User(
                             id = lastPostAuthorId,
                             name = lastPostAuthorName,
-                            url = lastPostAuthorUrl
                         )
                     )
                 )
@@ -209,6 +210,7 @@ internal object SearchParser : BaseParser() {
             }
 
             val searchPage = SearchPage(
+                pageInfo = pageInfo,
                 totalResults = totalResults,
                 currentPage = currentPage,
                 totalPages = totalPages,
@@ -228,10 +230,10 @@ internal object SearchParser : BaseParser() {
     /**
      * Extracts the ID from a URL like "showtopic-12345.aspx" or "userinfo-12345.aspx"
      */
-    private fun extractIdFromUrl(url: String): Int {
+    private fun extractIdFromUrl(url: String): String {
         val regex = "-(\\d+)".toRegex()
         val match = regex.find(url)
-        return match?.groupValues?.get(1)?.toIntOrNull() ?: 0
+        return match?.groupValues?.get(1) ?: ""
     }
 
     /**

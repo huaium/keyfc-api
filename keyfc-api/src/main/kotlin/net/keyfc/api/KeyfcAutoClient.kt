@@ -20,23 +20,23 @@ class KeyfcAutoClient(username: String, password: String) : AutoCloseable {
     }
 
     suspend fun fetchIndex(autoLogin: Boolean = true) =
-        fetchResultWrapper(
+        fetchWrapper(
             autoLogin = autoLogin,
-            withAuthCall = { cookies ->
+            callWithCookies = { cookies ->
                 keyfcClient.fetchIndex(cookies)
             },
-            withoutAuthCall = {
+            callWithoutCookies = {
                 keyfcClient.fetchIndex()
             }
         )
 
     suspend fun fetchForum(id: String, autoLogin: Boolean = true) =
-        fetchResultWrapper(
+        fetchWrapper(
             autoLogin = autoLogin,
-            withAuthCall = { cookies ->
+            callWithCookies = { cookies ->
                 keyfcClient.fetchForum(id, cookies)
             },
-            withoutAuthCall = {
+            callWithoutCookies = {
                 keyfcClient.fetchForum(id)
             }
         )
@@ -45,12 +45,12 @@ class KeyfcAutoClient(username: String, password: String) : AutoCloseable {
         fetchForum(forum.id, autoLogin)
 
     suspend fun fetchTopic(id: String, autoLogin: Boolean = true) =
-        fetchResultWrapper(
+        fetchWrapper(
             autoLogin = autoLogin,
-            withAuthCall = { cookies ->
+            callWithCookies = { cookies ->
                 keyfcClient.fetchTopic(id, cookies)
             },
-            withoutAuthCall = {
+            callWithoutCookies = {
                 keyfcClient.fetchTopic(id)
             }
         )
@@ -59,15 +59,18 @@ class KeyfcAutoClient(username: String, password: String) : AutoCloseable {
         fetchTopic(topic.id, autoLogin)
 
     suspend fun search(keyword: String, autoLogin: Boolean = true) =
-        fetchResultWrapper(
+        fetchWrapperWithCookies(
             autoLogin = autoLogin,
-            withAuthCall = { cookies ->
-                keyfcClient.search(keyword, cookies)
-            },
-            withoutAuthCall = {
-                keyfcClient.search(keyword)
-            }
-        )
+        ) { cookies ->
+            keyfcClient.search(keyword, cookies)
+        }
+
+    suspend fun fetchUc(autoLogin: Boolean = true) =
+        fetchWrapperWithCookies(
+            autoLogin = autoLogin,
+        ) { cookies ->
+            keyfcClient.fetchUc(cookies)
+        }
 
     fun logout() {
         _autoAuth.logout()
@@ -80,32 +83,21 @@ class KeyfcAutoClient(username: String, password: String) : AutoCloseable {
      * to unauthenticated calls if needed.
      *
      * @param autoLogin Whether to attempt automatic login if needed
-     * @param withAuthCall Function that performs the API call with authentication cookies
-     * @param withoutAuthCall Function that performs the API call without authentication
+     * @param callWithCookies Function that performs the API call with authentication cookies
+     * @param callWithoutCookies Function that performs the API call without authentication
      * @return [FetchResult] wrapping the API call result with appropriate login state
      */
-    private suspend inline fun <T> fetchResultWrapper(
+    private suspend inline fun <T> fetchWrapper(
         autoLogin: Boolean = true,
-        crossinline withAuthCall: suspend (cookies: List<HttpCookie>) -> T,
-        crossinline withoutAuthCall: suspend () -> T
+        crossinline callWithCookies: suspend (cookies: List<HttpCookie>) -> T,
+        crossinline callWithoutCookies: suspend () -> T
     ): FetchResult<T> {
         return try {
-            // Try to get authentication cookies
-            val cookies = _autoAuth.getCookies(autoLogin)
-
-            // Call API with cookies
-            val result = withAuthCall(cookies)
-
-            // Return result with appropriate login state
-            if (cookies.isEmpty()) {
-                FetchResult.WithoutCookies(result)
-            }
-
-            FetchResult.WithCookies(result, _autoAuth.isLoggedInValid)
+            fetchWrapperWithCookies(autoLogin, callWithCookies = callWithCookies)
         } catch (_: Exception) {
             try {
                 // If authenticated call fails, try unauthenticated call
-                val result = withoutAuthCall()
+                val result = callWithoutCookies()
                 FetchResult.WithoutCookies(result)
             } catch (e: Exception) {
                 // Both approaches failed, return failure
@@ -115,4 +107,25 @@ class KeyfcAutoClient(username: String, password: String) : AutoCloseable {
         }
     }
 
+    private suspend inline fun <T> fetchWrapperWithCookies(
+        autoLogin: Boolean = true,
+        crossinline callWithCookies: suspend (cookies: List<HttpCookie>) -> T,
+    ): FetchResult<T> {
+        return try {
+            val cookies = _autoAuth.getCookies(autoLogin)
+
+            // Call API with cookies
+            val result = callWithCookies(cookies)
+
+            // Return result with appropriate login state
+            if (cookies.isEmpty()) {
+                FetchResult.WithoutCookies(result)
+            }
+
+            FetchResult.WithCookies(result, _autoAuth.isLoggedInValid)
+        } catch (e: Exception) {
+            val message = "Authenticated call failed: ${e.message}"
+            FetchResult.Failure(message, e)
+        }
+    }
 }

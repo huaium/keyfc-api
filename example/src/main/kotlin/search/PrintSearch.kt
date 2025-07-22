@@ -7,9 +7,12 @@ import java.time.format.DateTimeFormatter
 fun printSearch(result: SearchParseResult) {
     when (result) {
         is SearchParseResult.Success -> {
-            val searchResults = result.searchResults
+            val searchResults = result.searchPage
 
-            println("\nTotal Results: ${searchResults.totalResults}")
+            println("\nTitle: ${searchResults.pageInfo.title}")
+            println("Keywords: ${searchResults.pageInfo.keywords}")
+            println("Description: ${searchResults.pageInfo.description}")
+            println("Total Results: ${searchResults.totalResults}")
             println("Page: ${searchResults.currentPage}/${searchResults.totalPages}\n")
 
             if (searchResults.items.isEmpty()) {

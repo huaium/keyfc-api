@@ -4,7 +4,7 @@ import net.keyfc.api.model.page.search.SearchPage
 
 sealed class SearchParseResult {
     data class Success(
-        val searchResults: SearchPage
+        val searchPage: SearchPage
     ) : SearchParseResult()
 
     data class PermissionDenial(

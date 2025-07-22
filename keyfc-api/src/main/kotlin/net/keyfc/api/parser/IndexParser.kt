@@ -69,6 +69,8 @@ internal object IndexParser : ArchiverParser() {
         }
     }
 
+    private const val INDEX_URL = ARCHIVER_URL + "index.aspx"
+
     /**
      * Fetches and parses the index page.
      *
@@ -79,7 +81,7 @@ internal object IndexParser : ArchiverParser() {
      */
     suspend fun parse(repoClient: RepoClient, cookies: List<HttpCookie> = emptyList()): IndexParseResult =
         try {
-            val archiverParseResult = super.parseArchiver(repoClient.parseUrl(ARCHIVER_URL + "index.aspx", cookies))
+            val archiverParseResult = super.parseArchiver(repoClient.parseUrl(INDEX_URL, cookies))
 
             when (archiverParseResult) {
                 is ArchiverParseResult.Failure -> IndexParseResult.Failure(

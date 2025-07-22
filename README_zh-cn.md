@@ -11,7 +11,7 @@
 - [x] [帖子 (archiver)](https://keyfc.net/bbs/archiver/showtopic-70169.aspx)
 - [x] [登录](https://keyfc.net/bbs/login.aspx)
 - [x] [搜索](https://keyfc.net/bbs/search.aspx)
-- [ ] [用户中心](https://keyfc.net/bbs/usercp.aspx)
+- [x] [用户中心](https://keyfc.net/bbs/usercp.aspx)
 - [ ] [通知](https://keyfc.net/bbs/usercpnotice.aspx?filter=all)
 - [ ] [收件箱](https://keyfc.net/bbs/usercpinbox.aspx)
 - [ ] [我的主题](https://keyfc.net/bbs/mytopics.aspx)

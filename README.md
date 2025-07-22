@@ -11,7 +11,7 @@ A library for parsing [KeyFC](https://keyfc.net/bbs/archiver/) pages into struct
 - [x] [Topic (archiver)](https://keyfc.net/bbs/archiver/showtopic-70169.aspx)
 - [x] [Login](https://keyfc.net/bbs/login.aspx)
 - [x] [Search](https://keyfc.net/bbs/search.aspx)
-- [ ] [User center](https://keyfc.net/bbs/usercp.aspx)
+- [x] [User center](https://keyfc.net/bbs/usercp.aspx)
 - [ ] [Notification](https://keyfc.net/bbs/usercpnotice.aspx?filter=all)
 - [ ] [Inbox](https://keyfc.net/bbs/usercpinbox.aspx)
 - [ ] [My topics](https://keyfc.net/bbs/mytopics.aspx)
