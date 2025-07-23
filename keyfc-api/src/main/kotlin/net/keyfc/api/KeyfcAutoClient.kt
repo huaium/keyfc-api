@@ -100,6 +100,13 @@ class KeyfcAutoClient(username: String, password: String) : AutoCloseable {
             keyfcClient.fetchMyPosts(cookies)
         }
 
+    suspend fun fetchFavourites(autoLogin: Boolean = true) =
+        fetchWithCookies(
+            autoLogin = autoLogin,
+        ) { cookies ->
+            keyfcClient.fetchFavourites(cookies)
+        }
+
     fun logout() {
         _autoAuth.logout()
     }

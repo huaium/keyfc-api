@@ -1,9 +1,9 @@
-package net.keyfc.api.model.notification
+package net.keyfc.api.model.notifications
 
 import net.keyfc.api.model.search.User
 import java.time.LocalDateTime
 
-data class NotificationItem(
+data class Notification(
     val content: String, // Raw notification content
     val user: User?, // User who triggered the notification (can be null)
     val topicId: String?, // Topic ID if applicable (can be null)

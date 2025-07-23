@@ -1,4 +1,4 @@
-package notification
+package notifications
 
 import kotlinx.coroutines.runBlocking
 import net.keyfc.api.KeyfcAutoClient
@@ -20,10 +20,10 @@ fun main() {
 
     when (result) {
         is FetchResult.Failure -> println("Failed to fetch notifications: ${result.message}")
-        is FetchResult.WithCookies -> printNotification(result.result)
+        is FetchResult.WithCookies -> printNotifications(result.result)
         is FetchResult.WithoutCookies -> {
             println("Successfully fetched notifications, but without cookies.")
-            printNotification(result.result)
+            printNotifications(result.result)
         }
     }
 }

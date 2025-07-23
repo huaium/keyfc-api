@@ -34,7 +34,7 @@ class KeyfcClient : AutoCloseable {
         UcParser.parse(repoClient, cookies)
 
     suspend fun fetchNotifications(cookies: List<HttpCookie> = emptyList(), filter: String = "all") =
-        NotificationParser.parse(repoClient, cookies, filter)
+        NotificationsParser.parse(repoClient, cookies, filter)
 
     suspend fun fetchInbox(cookies: List<HttpCookie> = emptyList()) =
         InboxParser.parse(repoClient, cookies)
@@ -44,4 +44,7 @@ class KeyfcClient : AutoCloseable {
 
     suspend fun fetchMyPosts(cookies: List<HttpCookie> = emptyList()) =
         MyPostsParser.parse(repoClient, cookies)
+
+    suspend fun fetchFavourites(cookies: List<HttpCookie> = emptyList()) =
+        FavouritesParser.parse(repoClient, cookies)
 }

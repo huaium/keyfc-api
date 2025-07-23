@@ -3,12 +3,12 @@ package net.keyfc.api.parser
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import net.keyfc.api.RepoClient
-import net.keyfc.api.model.notification.NotificationFilter
-import net.keyfc.api.model.notification.NotificationItem
-import net.keyfc.api.model.notification.NotificationPage
+import net.keyfc.api.model.notifications.NotificationsFilter
+import net.keyfc.api.model.notifications.Notification
+import net.keyfc.api.model.notifications.NotificationsPage
 import net.keyfc.api.model.search.User
 import net.keyfc.api.result.parse.BaseParseResult
-import net.keyfc.api.result.parse.NotificationParseResult
+import net.keyfc.api.result.parse.NotificationsParseResult
 import java.net.HttpCookie
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -18,7 +18,7 @@ import java.time.format.DateTimeParseException
  * Parser for notification pages.
  * This parser extracts notifications from the notification page.
  */
-internal object NotificationParser : BaseParser() {
+internal object NotificationsParser : BaseParser() {
 
     private const val NOTIFICATION_URL = BASE_URL + "usercpnotice.aspx"
     private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
@@ -29,29 +29,29 @@ internal object NotificationParser : BaseParser() {
      * @param repoClient The repository client to use for HTTP requests
      * @param cookies The cookies to include in the request
      * @param filter Optional filter for notifications
-     * @return [NotificationParseResult] containing the notifications if successful
+     * @return [NotificationsParseResult] containing the notifications if successful
      */
     suspend fun parse(
         repoClient: RepoClient,
         cookies: List<HttpCookie> = emptyList(),
-        filter: NotificationFilter = NotificationFilter.ALL
+        filter: NotificationsFilter = NotificationsFilter.ALL
     ) = parse(repoClient, cookies, filter.value)
 
     /**
      * Retrieves and parses the notification page.
      *
-     * Serves the same functionality as parse that accepts [NotificationFilter], but it allows user to specify the filter string instead of limited options.
+     * Serves the same functionality as parse that accepts [NotificationsFilter], but it allows user to specify the filter string instead of limited options.
      *
      * @param repoClient The repository client to use for HTTP requests
      * @param cookies The cookies to include in the request
      * @param filter Optional filter for notifications (e.g., "all", "topicadmin", etc.)
-     * @return [NotificationParseResult] containing the notifications if successful
+     * @return [NotificationsParseResult] containing the notifications if successful
      */
     suspend fun parse(
         repoClient: RepoClient,
         cookies: List<HttpCookie> = emptyList(),
         filter: String = "all"
-    ): NotificationParseResult {
+    ): NotificationsParseResult {
         try {
             val url = if (filter == "all") NOTIFICATION_URL else "$NOTIFICATION_URL?filter=$filter"
 
@@ -63,7 +63,7 @@ internal object NotificationParser : BaseParser() {
             // Parse the HTML response
             return parseNotificationPage(document)
         } catch (e: Exception) {
-            return NotificationParseResult.Failure(
+            return NotificationsParseResult.Failure(
                 "Failed to retrieve notifications: ${e.message}",
                 e
             )
@@ -74,9 +74,9 @@ internal object NotificationParser : BaseParser() {
      * Parse the notification page and extract notifications.
      *
      * @param document The HTML document to parse
-     * @return [NotificationParseResult] containing the notifications if successfully parsed
+     * @return [NotificationsParseResult] containing the notifications if successfully parsed
      */
-    private fun parseNotificationPage(document: Document): NotificationParseResult {
+    private fun parseNotificationPage(document: Document): NotificationsParseResult {
         val baseResult = super.parseBase(document)
 
         return when (baseResult) {
@@ -86,7 +86,7 @@ internal object NotificationParser : BaseParser() {
                     val errorMsgDiv = document.selectFirst("div.msg_inner.error_msg")
                     if (errorMsgDiv != null) {
                         val permissionMessage = errorMsgDiv.selectFirst("p")?.text() ?: "Permission denied"
-                        return NotificationParseResult.PermissionDenial(permissionMessage)
+                        return NotificationsParseResult.PermissionDenial(permissionMessage)
                     }
 
                     // Extract pagination information
@@ -97,27 +97,27 @@ internal object NotificationParser : BaseParser() {
                     val totalPages = pageMatch?.groupValues?.get(2)?.toIntOrNull() ?: 1
 
                     // Extract notifications
-                    val notificationItems = mutableListOf<NotificationItem>()
+                    val notifications = mutableListOf<Notification>()
                     val notificationRows = document.select("table.pm_list > tbody > tr")
 
                     for (row in notificationRows) {
                         val notificationItem = parseNotificationItem(row)
                         if (notificationItem != null) {
-                            notificationItems.add(notificationItem)
+                            notifications.add(notificationItem)
                         }
                     }
 
-                    val notificationPage = NotificationPage(
+                    val notificationsPage = NotificationsPage(
                         pageInfo = baseResult.pageInfo,
-                        notifications = notificationItems,
+                        notifications = notifications,
                         currentPage = currentPage,
                         totalPages = totalPages
                     )
 
-                    return NotificationParseResult.Success(notificationPage)
+                    return NotificationsParseResult.Success(notificationsPage)
 
                 } catch (e: Exception) {
-                    return NotificationParseResult.Failure(
+                    return NotificationsParseResult.Failure(
                         "Failed to parse notification page: ${e.message}",
                         e
                     )
@@ -125,7 +125,7 @@ internal object NotificationParser : BaseParser() {
             }
 
             is BaseParseResult.Failure -> {
-                NotificationParseResult.Failure(baseResult.message, baseResult.exception)
+                NotificationsParseResult.Failure(baseResult.message, baseResult.exception)
             }
         }
     }
@@ -134,9 +134,9 @@ internal object NotificationParser : BaseParser() {
      * Parse a single notification row element.
      *
      * @param row The notification row element
-     * @return [NotificationItem] or null if parsing fails
+     * @return [Notification] or null if parsing fails
      */
-    private fun parseNotificationItem(row: Element): NotificationItem? {
+    private fun parseNotificationItem(row: Element): Notification? {
         try {
             // Extract notification content
             val contentElement = row.selectFirst("td.notice_list")
@@ -162,7 +162,7 @@ internal object NotificationParser : BaseParser() {
             // Extract reason if available
             val reasonText = content.substringAfterLast("理由:", "").takeIf { it != content }
 
-            return NotificationItem(
+            return Notification(
                 content = content,
                 user = user,
                 topicId = topicId,

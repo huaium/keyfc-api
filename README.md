@@ -16,7 +16,7 @@ A library for parsing [KeyFC](https://keyfc.net/bbs/archiver/) pages into struct
 - [x] [Inbox](https://keyfc.net/bbs/usercpinbox.aspx)
 - [x] [My topics](https://keyfc.net/bbs/mytopics.aspx)
 - [x] [My posts](https://keyfc.net/bbs/myposts.aspx)
-- [ ] [My favourites](https://keyfc.net/bbs/usercpsubscribe.aspx)
+- [x] [My favourites](https://keyfc.net/bbs/usercpsubscribe.aspx)
 
 ## Example
 
