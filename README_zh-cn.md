@@ -13,7 +13,7 @@
 - [x] [搜索](https://keyfc.net/bbs/search.aspx)
 - [x] [用户中心](https://keyfc.net/bbs/usercp.aspx)
 - [x] [通知](https://keyfc.net/bbs/usercpnotice.aspx?filter=all)
-- [ ] [收件箱](https://keyfc.net/bbs/usercpinbox.aspx)
+- [x] [收件箱](https://keyfc.net/bbs/usercpinbox.aspx)
 - [ ] [我的主题](https://keyfc.net/bbs/mytopics.aspx)
 - [ ] [我的帖子](https://keyfc.net/bbs/myposts.aspx)
 - [ ] [收藏夹](https://keyfc.net/bbs/usercpsubscribe.aspx)
