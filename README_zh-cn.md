@@ -15,7 +15,7 @@
 - [x] [通知](https://keyfc.net/bbs/usercpnotice.aspx?filter=all)
 - [x] [收件箱](https://keyfc.net/bbs/usercpinbox.aspx)
 - [x] [我的主题](https://keyfc.net/bbs/mytopics.aspx)
-- [ ] [我的帖子](https://keyfc.net/bbs/myposts.aspx)
+- [x] [我的帖子](https://keyfc.net/bbs/myposts.aspx)
 - [ ] [收藏夹](https://keyfc.net/bbs/usercpsubscribe.aspx)
 
 ## 用例

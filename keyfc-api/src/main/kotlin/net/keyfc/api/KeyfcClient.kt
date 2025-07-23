@@ -41,4 +41,7 @@ class KeyfcClient : AutoCloseable {
 
     suspend fun fetchMyTopics(cookies: List<HttpCookie> = emptyList()) =
         MyTopicsParser.parse(repoClient, cookies)
+
+    suspend fun fetchMyPosts(cookies: List<HttpCookie> = emptyList()) =
+        MyPostsParser.parse(repoClient, cookies)
 }
