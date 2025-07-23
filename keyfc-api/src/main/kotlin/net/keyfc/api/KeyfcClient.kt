@@ -38,4 +38,7 @@ class KeyfcClient : AutoCloseable {
 
     suspend fun fetchInbox(cookies: List<HttpCookie> = emptyList()) =
         InboxParser.parse(repoClient, cookies)
+
+    suspend fun fetchMyTopics(cookies: List<HttpCookie> = emptyList()) =
+        MyTopicsParser.parse(repoClient, cookies)
 }

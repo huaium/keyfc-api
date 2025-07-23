@@ -127,7 +127,7 @@ internal object SearchParser : BaseParser() {
             val totalResults = totalResultsMatch?.groupValues?.get(1)?.toIntOrNull() ?: 0
 
             // Extract pagination information
-            val pagesText = document.selectFirst("div.pages")?.text() ?: ""
+            val pagesText = document.selectFirst("div.pages")?.html() ?: ""
             val pageRegex = "(\\d+)/(\\d+)页".toRegex()
             val pageMatch = pageRegex.find(pagesText)
             val currentPage = pageMatch?.groupValues?.get(1)?.toIntOrNull() ?: 1
