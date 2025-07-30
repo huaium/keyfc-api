@@ -1,5 +1,7 @@
 # keyfc-api
 
+[![](https://jitpack.io/v/huaium/keyfc-api.svg)](https://jitpack.io/#huaium/keyfc-api)
+
 [English](README.md) | 中文
 
 用于解析 [KeyFC](https://keyfc.net/bbs/archiver/) 页面为结构化数据类的库，为 Kotlin 和 Java 设计。

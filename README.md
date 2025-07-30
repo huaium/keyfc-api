@@ -1,5 +1,7 @@
 # keyfc-api
 
+[![](https://jitpack.io/v/huaium/keyfc-api.svg)](https://jitpack.io/#huaium/keyfc-api)
+
 English | [中文](README_zh-cn.md)
 
 A library for parsing [KeyFC](https://keyfc.net/bbs/archiver/) pages into structured data classes for Kotlin and Java.
