@@ -2,18 +2,15 @@ package net.keyfc.api.parser
 
 import com.fleeksoft.ksoup.nodes.Element
 import net.keyfc.api.RepoClient
+import net.keyfc.api.RepoClient.Companion.ARCHIVER_URL
+import net.keyfc.api.ext.pageInfo
+import net.keyfc.api.ext.parseId
 import net.keyfc.api.model.index.Forum
 import net.keyfc.api.model.index.IndexPage
-import net.keyfc.api.result.parse.ArchiverParseResult
-import net.keyfc.api.result.parse.IndexParseResult
 import java.net.HttpCookie
 
-/**
- * Call parse method to parse the index page.
- *
- * @see <a href="https://keyfc.net/bbs/archiver/index.aspx">KeyFC Index</a>
- */
-internal object IndexParser : ArchiverParser() {
+internal object IndexParser {
+
     /**
      * Parse state class that holds temporary state during processing.
      */
@@ -74,41 +71,31 @@ internal object IndexParser : ArchiverParser() {
     /**
      * Fetches and parses the index page.
      *
-     * If basic page info is successfully parsed by super class, this method will reuse the HTML document provided,
-     * and parses it into structured data represented by [IndexPage], wrapped in [IndexParseResult.Success].
+     * If it is accessible, structured data represented by [IndexPage] will be returned, wrapped in [Result].
      *
-     * If parsing fails, this method will return [IndexParseResult.Failure] with the error message and exception.
+     * If parsing fails, this method will return [Result] with the error message and exception.
      */
-    suspend fun parse(repoClient: RepoClient, cookies: List<HttpCookie> = emptyList()): IndexParseResult =
-        try {
-            val archiverParseResult = super.parseArchiver(repoClient.parseUrl(INDEX_URL, cookies))
+    suspend fun parse(repoClient: RepoClient, cookies: List<HttpCookie> = emptyList()): Result<IndexPage> {
+        return runCatching {
+            val document = repoClient.parseUrl(INDEX_URL, cookies)
 
-            when (archiverParseResult) {
-                is ArchiverParseResult.Failure -> IndexParseResult.Failure(
-                    archiverParseResult.message,
-                    archiverParseResult.exception
-                )
+            // No need to validate as this is a public page
 
-                is ArchiverParseResult.Success -> {
-                    // Select all category and forum items while maintaining order
-                    val elements = archiverParseResult.document.select("div.cateitem, div.forumitem")
+            // Select all category and forum items while maintaining order
+            val elements = document.select("div.cateitem, div.forumitem")
 
-                    // Process elements in functional style using fold
-                    val categories = elements.fold(ParseState()) { state, element ->
-                        processElement(state, element)
-                    }.flushCategory()
+            // Process elements in functional style using fold
+            val categories = elements.fold(ParseState()) { state, element ->
+                processElement(state, element)
+            }.flushCategory()
 
-                    IndexParseResult.Success(
-                        IndexPage(
-                            pageInfo = archiverParseResult.pageInfo,
-                            categories = categories
-                        )
-                    )
-                }
-            }
-        } catch (e: Exception) {
-            IndexParseResult.Failure("Soup client document parsing failed", e)
+            IndexPage(
+                document = document,
+                pageInfo = document.pageInfo(),
+                categories = categories
+            )
         }
+    }
 
     /**
      * Processes a single element.
@@ -121,7 +108,7 @@ internal object IndexParser : ArchiverParser() {
                 val a = element.selectFirst("h2 a")
                 if (a != null) {
                     val categoryName = a.text().trim()
-                    val categoryId = Forum.Companion.extractId(a.attr("href")) ?: ""
+                    val categoryId = a.attr("href").parseId()
                     state.startNewCategory(categoryName, categoryId)
                 } else {
                     state
@@ -133,7 +120,7 @@ internal object IndexParser : ArchiverParser() {
                 val a = h3?.selectFirst("a")
                 if (h3 != null && a != null) {
                     val name = a.text().trim()
-                    val id = Forum.Companion.extractId(a.attr("href")) ?: ""
+                    val id = a.attr("href").parseId()
                     // Calculate level by counting spaces
                     val level = h3.wholeText().replace("\\S".toRegex(), "").length
                     state.addForum(name, id, level)

@@ -1,13 +1,12 @@
 package net.keyfc.api.model.myposts
 
+import com.fleeksoft.ksoup.nodes.Document
 import net.keyfc.api.model.PageInfo
+import net.keyfc.api.model.Pagination
 
-/**
- * Represents the "My Posts" page containing the user's posts.
- */
 data class MyPostsPage(
+    val document: Document,
     val pageInfo: PageInfo,
     val posts: List<MyPost>,
-    val currentPage: Int,
-    val totalPages: Int
+    val pagination: Pagination
 )

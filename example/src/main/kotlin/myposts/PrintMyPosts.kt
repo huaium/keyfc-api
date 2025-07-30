@@ -1,18 +1,16 @@
 package myposts
 
-import net.keyfc.api.result.parse.MyPostsParseResult
+import net.keyfc.api.model.myposts.MyPostsPage
 import java.time.format.DateTimeFormatter
 
-fun printMyPosts(result: MyPostsParseResult) {
-    when (result) {
-        is MyPostsParseResult.Success -> {
-            val myPostsPage = result.myPostsPage
-
+fun printMyPosts(result: Result<MyPostsPage>) {
+    result.fold(
+        onSuccess = { myPostsPage ->
             println("\nTitle: ${myPostsPage.pageInfo.title}")
             println("Keywords: ${myPostsPage.pageInfo.keywords}")
-            println("Description: ${myPostsPage.pageInfo.description}\n")
+            println("Description: ${myPostsPage.pageInfo.description}")
 
-            println("My Posts Page ${myPostsPage.currentPage}/${myPostsPage.totalPages}")
+            println("\nMy Posts Page ${myPostsPage.pagination.currentPage}/${myPostsPage.pagination.totalPages}")
 
             if (myPostsPage.posts.isEmpty()) {
                 println("\nNo posts found.")
@@ -24,21 +22,14 @@ fun printMyPosts(result: MyPostsParseResult) {
                     println("\n[${index + 1}] ${post.title} ${if (post.isHot) "(HOT)" else ""}")
                     println("ID: ${post.id}")
                     println("Forum: ${post.forumName} (ID: ${post.forumId})")
-                    println("Last Post: ${post.lastPostDate.format(dateFormatter)} by ${post.lastPostUser.name}")
+                    post.lastPostDate?.let { println("Last Post: ${it.format(dateFormatter)} by ${post.lastPostUser.name}") }
+                    println("Last Post Date Raw String: ${post.lastPostDateText}")
                     println("URL: ${post.url}")
                 }
             }
+        },
+        onFailure = { exception ->
+            exception.printStackTrace()
         }
-
-        is MyPostsParseResult.PermissionDenial -> {
-            println("MY POSTS ACCESS DENIED")
-            println("Message: ${result.message}")
-        }
-
-        is MyPostsParseResult.Failure -> {
-            println("MY POSTS ERROR")
-            println("Message: ${result.message}")
-            println("Exception: ${result.exception}")
-        }
-    }
+    )
 }

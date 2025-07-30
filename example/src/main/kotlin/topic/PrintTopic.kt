@@ -1,12 +1,12 @@
 package topic
 
-import net.keyfc.api.result.parse.TopicParseResult
+import net.keyfc.api.model.topic.TopicPage
+import java.time.format.DateTimeFormatter
 
-fun printTopic(result: TopicParseResult) {
-    when (result) {
-        is TopicParseResult.Success -> {
-            val topicPage = result.topicPage
-            println("Title: ${topicPage.pageInfo.title}")
+fun printTopic(result: Result<TopicPage>) {
+    result.fold(
+        onSuccess = { topicPage ->
+            println("\nTitle: ${topicPage.pageInfo.title}")
             println("Keywords: ${topicPage.pageInfo.keywords}")
             println("Description: ${topicPage.pageInfo.description}")
 
@@ -15,48 +15,41 @@ fun printTopic(result: TopicParseResult) {
                 println("${index + 1}. ${breadcrumb.name} -> ${breadcrumb.link}")
             }
 
-            println("\nParent Forum:")
-            println("Name: ${topicPage.parentForum.name}")
-            println("ID: ${topicPage.parentForum.id}")
+            topicPage.parentForum?.let {
+                println("\nParent Forum:")
+                println("Name: ${it.name}")
+                println("ID: ${it.id}")
+            }
 
-            println("\nCurrent Forum:")
-            println("Name: ${topicPage.thisForum.name}")
-            println("ID: ${topicPage.thisForum.id}")
+            topicPage.thisForum?.let {
+                println("\nCurrent Forum:")
+                println("Name: ${it.name}")
+                println("ID: ${it.id}")
+            }
 
-            println("\nThis Topic:")
-            println("Name: ${topicPage.thisTopic.title}")
-            println("ID: ${topicPage.thisTopic.id}")
+            topicPage.thisTopic?.let {
+                println("\nThis Topic:")
+                println("Name: ${it.title}")
+                println("ID: ${it.id}")
+            }
 
+            val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
             println("\nPosts (${topicPage.posts.size} total):")
             topicPage.posts.forEach { post ->
                 println("Author: ${post.author}")
-                println("Post Time: ${post.postTime}")
+                post.postTime?.let { println("Post Time: ${it.format(dateFormatter)}") }
+                println("Post Time Raw String: ${post.postTimeText}")
                 println("Content: ${post.content.take(50)}...")  // Just show first 50 chars
             }
 
-            topicPage.pagination?.let {
+            topicPage.pagination.let {
                 println("\nPagination Information:")
                 println("Current Page: ${it.currentPage}")
                 println("Total Pages: ${it.totalPages}")
-                println("Has Next Page: ${it.hasNextPage}")
-                println("Has Previous Page: ${it.hasPreviousPage}")
-                println("Next Page Link: ${it.nextPageLink}")
-                println("Previous Page Link: ${it.previousPageLink}")
             }
+        },
+        onFailure = { exception ->
+            exception.printStackTrace()
         }
-
-        is TopicParseResult.PermissionDenial -> {
-            println("Required Permission Level: ${result.requiredPermissionLevel}")
-            println("Current Identity: ${result.currentIdentity}")
-        }
-
-        is TopicParseResult.UnknownDenial -> {
-            println("Unknown Denial: ${result.message}")
-        }
-
-        is TopicParseResult.Failure -> {
-            println("Failed to parse topic page: ${result.message}")
-            println("Exception: ${result.exception}")
-        }
-    }
+    )
 }

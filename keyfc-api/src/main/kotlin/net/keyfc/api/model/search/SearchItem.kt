@@ -1,5 +1,6 @@
 package net.keyfc.api.model.search
 
+import net.keyfc.api.model.User
 import net.keyfc.api.model.index.Forum
 import java.time.LocalDateTime
 
@@ -9,7 +10,8 @@ data class SearchItem(
     val url: String,
     val forum: Forum,
     val author: User,
-    val postDate: LocalDateTime,
+    val postDate: LocalDateTime?,
+    val postDateText: String,
     val replyCount: Int,
     val viewCount: Int,
     val lastPost: LastPost

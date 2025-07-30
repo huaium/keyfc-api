@@ -6,5 +6,5 @@ data class AttachmentPermissions(
     val setAttachmentPermissions: Boolean,
     val maxSingleAttachmentSize: Int,
     val maxDailyAttachmentSize: Int,
-    val allowedAttachmentTypes: String
+    val allowedAttachmentTypes: List<String>
 )

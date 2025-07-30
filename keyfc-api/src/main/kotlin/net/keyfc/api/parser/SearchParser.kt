@@ -1,45 +1,47 @@
 package net.keyfc.api.parser
 
 import com.fleeksoft.ksoup.nodes.Document
+import com.fleeksoft.ksoup.nodes.Element
 import io.ktor.client.statement.*
 import net.keyfc.api.RepoClient
+import net.keyfc.api.RepoClient.Companion.BASE_URL
+import net.keyfc.api.ext.*
 import net.keyfc.api.model.PageInfo
+import net.keyfc.api.model.User
 import net.keyfc.api.model.index.Forum
 import net.keyfc.api.model.search.LastPost
 import net.keyfc.api.model.search.SearchItem
 import net.keyfc.api.model.search.SearchPage
-import net.keyfc.api.model.search.User
-import net.keyfc.api.result.parse.BaseParseResult
-import net.keyfc.api.result.parse.SearchParseResult
 import java.net.HttpCookie
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatter.ofPattern
 
-/**
- * Parser for search result pages.
- * This parser extracts the search redirection link from the search page.
- */
-internal object SearchParser : BaseParser() {
+internal object SearchParser {
 
     private const val SEARCH_URL = BASE_URL + "search.aspx"
-    private val dateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm")
+
+    private const val IS_ARCHIVER = false
+
+    private fun getFullRedirectUrl(redirectLink: String) = BASE_URL + redirectLink
+
+    private fun parseDateTime(dateTimeText: String) = dateTimeText.parseDateTime(ofPattern("yyyy.MM.dd HH:mm"))
 
     /**
-     * Submit a search request and parse the response to extract the search redirection link.
+     * Submits a search request and parse the response to extract the search redirection link.
      *
      * @param repoClient The repository client to use for HTTP requests
      * @param keyword The search keyword
      * @param cookies The cookies to include in the request
-     * @return [SearchParseResult] containing the search redirection link if found
+     *
+     * @return [Result] containing the search redirection link if found, or an error if not found
      */
     suspend fun search(
         repoClient: RepoClient,
         keyword: String,
         cookies: List<HttpCookie> = emptyList()
-    ): SearchParseResult {
-        try {
+    ): Result<SearchPage> {
+        return runCatching {
             // Submit the search form
-            val response = repoClient.postFormData(
+            val document = repoClient.postFormData(
                 url = SEARCH_URL,
                 formDataMap = mapOf(
                     "keyword" to keyword,
@@ -56,204 +58,149 @@ internal object SearchParser : BaseParser() {
                 ),
                 cookies = cookies,
             )
+                .let { repoClient.parseHtml(it.bodyAsText()) }
+                .apply { this.validate().getOrThrow() }
 
-            // Parse the HTML response
-            return parseRedirectPage(repoClient, cookies, repoClient.parseHtml(response.bodyAsText()))
-        } catch (e: Exception) {
-            return SearchParseResult.Failure(
-                "Failed to submit search request: ${e.message}",
-                e
+            // Extract the link from the msg_inner div
+            val msgInnerDiv = document.selectFirst("div.msg_inner")
+            val redirectLink = msgInnerDiv?.selectFirst("a")?.attr("href")
+
+            if (redirectLink == null)
+                throw RuntimeException("No redirect link found in the search result page")
+
+            return parseResultPage(
+                document = repoClient.parseUrl(getFullRedirectUrl(redirectLink), cookies),
+                pageInfo = document.pageInfo()
             )
         }
     }
 
     /**
-     * Parse the redirect page and extract the search redirection link.
+     * Parses the search result page to extract search items and pagination information.
      *
-     * @param document The HTML document to parse
-     * @return SearchParseResult containing the search redirection link if found
+     * @param document The HTML document of the search result page
+     * @param pageInfo The page information extracted from the document
+     *
+     * @return [Result] containing the parsed [SearchPage] if successful, or an error if parsing fails
      */
-    private suspend fun parseRedirectPage(
-        repoClient: RepoClient,
-        cookies: List<HttpCookie>,
-        document: Document
-    ): SearchParseResult {
-        val baseResult = super.parseBase(document)
-
-        return when (baseResult) {
-            is BaseParseResult.Success -> {
-                try {
-                    // Check for permission denial message
-                    val errorMsgDiv = document.selectFirst("div.msg_inner.error_msg")
-                    if (errorMsgDiv != null) {
-                        val permissionMessage = errorMsgDiv.selectFirst("p")?.text() ?: "Permission denied"
-                        return SearchParseResult.PermissionDenial(permissionMessage)
-                    }
-
-                    // Extract the link from the msg_inner div
-                    val msgInnerDiv = document.selectFirst("div.msg_inner")
-                    val redirectLink = msgInnerDiv?.selectFirst("a")?.attr("href")
-
-                    if (redirectLink == null)
-                        return SearchParseResult.Failure(
-                            "Failed to extract search redirection link: No link found",
-                            RuntimeException("Failed to extract search redirection link: No link found")
-                        )
-
-                    parseResultPage(
-                        document = repoClient.parseUrl(BASE_URL + redirectLink, cookies),
-                        pageInfo = baseResult.pageInfo
-                    )
-                } catch (e: Exception) {
-                    SearchParseResult.Failure(
-                        "Failed to extract search redirection link: ${e.message}",
-                        e
-                    )
-                }
-            }
-
-            is BaseParseResult.Failure -> {
-                SearchParseResult.Failure(baseResult.message, baseResult.exception)
-            }
-        }
-    }
-
-    fun parseResultPage(document: Document, pageInfo: PageInfo): SearchParseResult {
-        try {
+    private fun parseResultPage(document: Document, pageInfo: PageInfo): Result<SearchPage> {
+        return runCatching {
             // Extract total results count
             val channelInfoText = document.selectFirst("p.channelinfo")?.text() ?: ""
             val totalResultsRegex = "共搜索到(\\d+)个符合条件的帖子".toRegex()
             val totalResultsMatch = totalResultsRegex.find(channelInfoText)
             val totalResults = totalResultsMatch?.groupValues?.get(1)?.toIntOrNull() ?: 0
 
-            // Extract pagination information
-            val pagesText = document.selectFirst("div.pages")?.html() ?: ""
-            val pageRegex = "(\\d+)/(\\d+)页".toRegex()
-            val pageMatch = pageRegex.find(pagesText)
-            val currentPage = pageMatch?.groupValues?.get(1)?.toIntOrNull() ?: 1
-            val totalPages = pageMatch?.groupValues?.get(2)?.toIntOrNull() ?: 1
-
             // Extract search results
-            val searchItems = mutableListOf<SearchItem>()
-            val resultTbodies = document.select("div.threadlist.searchlist > table > tbody")
+            val searchItems = document
+                .select("div.threadlist.searchlist > table > tbody")
+                .mapNotNull { parseSearchItem(it) }
 
-            for (tbody in resultTbodies) {
-                // Skip the header row
-                if (tbody.hasClass("category")) continue
-
-                val tr = tbody.selectFirst("tr") ?: continue
-
-                // Extract topic information
-                val titleElement = tr.selectFirst("th.subject > a")
-                val topicUrl = titleElement?.attr("href") ?: continue
-                val topicId = extractIdFromUrl(topicUrl)
-                val title = titleElement.text()
-
-                // Extract forum information
-                val forumElement = tr.selectFirst("td > a[href^=showforum]")
-                val forumUrl = forumElement?.attr("href") ?: continue
-                val forumId = extractIdFromUrl(forumUrl)
-                val forumName = forumElement.text()
-
-                // Extract author information
-                val authorElement = tr.selectFirst("td.author > cite > a")
-                val authorUrl = authorElement?.attr("href") ?: continue
-                val authorId = extractIdFromUrl(authorUrl)
-                val authorName = authorElement.text()
-
-                // Extract post date
-                val postDateText = tr.selectFirst("td.author > em")?.text()?.trim() ?: continue
-                val postDate = parseDateTime(postDateText)
-
-                // Extract reply and view counts
-                val numsText = tr.selectFirst("td.nums")?.text() ?: "0 / 0"
-                val (replyCount, viewCount) = parseNums(numsText)
-
-                // Extract last post information
-                val lastPostDateElement = tr.selectFirst("td.lastpost > em > a")
-                val lastPostUrl = lastPostDateElement?.attr("href") ?: continue
-                val lastPostDateText = lastPostDateElement.text().trim()
-                val lastPostDate = parseDateTime(lastPostDateText)
-
-                val lastPostAuthorElement = tr.selectFirst("td.lastpost > cite > a")
-                val lastPostAuthorUrl = lastPostAuthorElement?.attr("href") ?: continue
-                val lastPostAuthorId = extractIdFromUrl(lastPostAuthorUrl)
-                val lastPostAuthorName = lastPostAuthorElement.text()
-
-                // Create search item
-                val searchItem = SearchItem(
-                    id = topicId,
-                    title = title,
-                    url = topicUrl,
-                    forum = Forum(
-                        name = forumName,
-                        id = forumId,
-                    ),
-                    author = User(
-                        id = authorId,
-                        name = authorName,
-                    ),
-                    postDate = postDate,
-                    replyCount = replyCount,
-                    viewCount = viewCount,
-                    lastPost = LastPost(
-                        date = lastPostDate,
-                        url = lastPostUrl,
-                        author = User(
-                            id = lastPostAuthorId,
-                            name = lastPostAuthorName,
-                        )
-                    )
-                )
-
-                searchItems.add(searchItem)
-            }
-
-            val searchPage = SearchPage(
+            SearchPage(
+                document = document,
                 pageInfo = pageInfo,
                 totalResults = totalResults,
-                currentPage = currentPage,
-                totalPages = totalPages,
+                pagination = document.pagination(IS_ARCHIVER),
                 items = searchItems
             )
+        }
+    }
 
-            return SearchParseResult.Success(searchPage)
+    /**
+     * Parses a single search item from the search result table body.
+     *
+     * @param tbody The table body element containing the search item
+     *
+     * @return [SearchItem] if parsing is successful, or null if parsing fails
+     */
+    private fun parseSearchItem(tbody: Element): SearchItem? {
+        // Skip the header row
+        if (tbody.hasClass("category")) return null
 
-        } catch (e: Exception) {
-            return SearchParseResult.Failure(
-                "Failed to parse search results page: ${e.message}",
-                e
+        val tr = tbody.selectFirst("tr") ?: return null
+
+        // Extract topic information
+        val titleElement = tr.selectFirst("th.subject > a")
+        val topicUrl = titleElement?.attr("href") ?: return null
+        val topicId = topicUrl.parseId()
+        val title = titleElement.text()
+
+        // Extract forum information
+        val forumElement = tr.selectFirst("td > a[href^=showforum]")
+        val forumUrl = forumElement?.attr("href") ?: return null
+        val forumId = forumUrl.parseId()
+        val forumName = forumElement.text()
+
+        // Extract author information
+        val authorElement = tr.selectFirst("td.author > cite > a")
+        val authorUrl = authorElement?.attr("href") ?: return null
+        val authorId = authorUrl.parseId()
+        val authorName = authorElement.text()
+
+        // Extract post date
+        val postDateText = tr.selectFirst("td.author > em")?.text()?.trim() ?: return null
+        val postDate = parseDateTime(postDateText)
+
+        // Extract reply and view counts
+        val numsText = tr.selectFirst("td.nums")?.text() ?: "0 / 0"
+        val (replyCount, viewCount) = parseNums(numsText)
+
+        // Extract last post information
+        val lastPostDateElement = tr.selectFirst("td.lastpost > em > a")
+        val lastPostUrl = lastPostDateElement?.attr("href") ?: return null
+
+        val lastPostDateText = lastPostDateElement.text().trim()
+        val lastPostDate = parseDateTime(lastPostDateText)
+
+        val lastPostAuthorElement = tr.selectFirst("td.lastpost > cite > a")
+        val lastPostAuthor = parseAuthor(lastPostAuthorElement) ?: return null
+
+
+        // Create search item
+        return SearchItem(
+            id = topicId,
+            title = title,
+            url = topicUrl,
+            forum = Forum(
+                name = forumName,
+                id = forumId,
+            ),
+            author = User(
+                id = authorId,
+                name = authorName,
+            ),
+            postDate = postDate,
+            postDateText = postDateText,
+            replyCount = replyCount,
+            viewCount = viewCount,
+            lastPost = LastPost(
+                date = lastPostDate,
+                dateText = lastPostDateText,
+                url = lastPostUrl,
+                author = lastPostAuthor
             )
-        }
+        )
     }
 
     /**
-     * Extracts the ID from a URL like "showtopic-12345.aspx" or "userinfo-12345.aspx"
+     * Parses the author element to extract user information.
      */
-    private fun extractIdFromUrl(url: String): String {
-        val regex = "-(\\d+)".toRegex()
-        val match = regex.find(url)
-        return match?.groupValues?.get(1) ?: ""
+    private fun parseAuthor(author: Element?): User? {
+        val lastPostAuthorUrl = author?.attr("href") ?: return null
+        val lastPostAuthorId = lastPostAuthorUrl.parseId()
+        val lastPostAuthorName = author.text()
+
+        return User(id = lastPostAuthorId, name = lastPostAuthorName)
     }
 
     /**
-     * Parses date and time from the format "yyyy.MM.dd HH:mm"
-     */
-    private fun parseDateTime(dateTimeText: String): LocalDateTime {
-        return try {
-            LocalDateTime.parse(dateTimeText.trim(), dateFormatter)
-        } catch (_: Exception) {
-            LocalDateTime.now() // Default to current time if parsing fails
-        }
-    }
-
-    /**
-     * Parses reply count and view count from text like "6 / 8566"
+     * Parses reply count and view count from text like "6 / 8566".
      */
     private fun parseNums(numsText: String): Pair<Int, Int> {
         val parts = numsText.split("/")
         val replyCount = parts.getOrNull(0)?.trim()?.toIntOrNull() ?: 0
         val viewCount = parts.getOrNull(1)?.trim()?.toIntOrNull() ?: 0
+
         return Pair(replyCount, viewCount)
     }
 }

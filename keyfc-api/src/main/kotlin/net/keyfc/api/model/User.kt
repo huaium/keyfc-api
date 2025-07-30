@@ -1,4 +1,4 @@
-package net.keyfc.api.model.search
+package net.keyfc.api.model
 
 data class User(
     val id: String,

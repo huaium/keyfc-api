@@ -1,11 +1,8 @@
 package net.keyfc.api.model.myposts
 
-import net.keyfc.api.model.search.User
+import net.keyfc.api.model.User
 import java.time.LocalDateTime
 
-/**
- * Represents a post in the user's "My Posts" list.
- */
 data class MyPost(
     val id: String,
     val title: String,
@@ -13,7 +10,8 @@ data class MyPost(
     val forumName: String,
     val forumId: String,
     val forumUrl: String,
-    val lastPostDate: LocalDateTime,
+    val lastPostDate: LocalDateTime?,
+    val lastPostDateText: String,
     val lastPostUser: User,
     val isHot: Boolean,
 )

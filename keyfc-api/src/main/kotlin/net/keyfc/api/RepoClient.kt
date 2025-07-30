@@ -11,28 +11,30 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import net.keyfc.api.ext.addRawCookies
 import java.net.HttpCookie
 
-internal class RepoClient {
+internal class RepoClient : AutoCloseable {
 
     companion object {
         private const val USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
+
+        const val BASE_URL = "https://keyfc.net/bbs/" // `/` is needed
+
+        const val ARCHIVER_URL = BASE_URL + "archiver/"
     }
 
     private val httpClient by lazy {
         HttpClient(CIO) {
             install(DefaultRequest) {
                 header("User-Agent", USER_AGENT)
-
             }
         }
     }
 
     private val context = Dispatchers.IO
 
-    fun close() {
+    override fun close() {
         httpClient.close()
     }
 
@@ -51,7 +53,7 @@ internal class RepoClient {
         }
     }
 
-    suspend inline fun postFormData(
+    suspend fun postFormData(
         url: String,
         formDataMap: Map<String, String>,
         cookies: List<HttpCookie> = emptyList(),
@@ -69,6 +71,16 @@ internal class RepoClient {
         return response
     }
 
+    /**
+     * Fetches the response from the given URL, optionally using provided cookies.
+     *
+     * @param url The URL to fetch
+     * @param cookies Optional list of cookies to include in the request
+     *
+     * @return The HTTP response
+     *
+     * @throws ResponseException if the response status is not 200 OK
+     */
     private suspend fun getResponse(url: String, cookies: List<HttpCookie> = emptyList()): HttpResponse {
         val response = httpClient.get(url) {
             addRawCookies(cookies)
@@ -82,5 +94,15 @@ internal class RepoClient {
         }
 
         return response
+    }
+
+    /**
+     * Adds cookies to HTTP request without encoding.
+     */
+    private fun HttpRequestBuilder.addRawCookies(cookies: List<HttpCookie>) {
+        if (cookies.isNotEmpty())
+            headers.append(
+                HttpHeaders.Cookie,
+                cookies.joinToString("; ") { "${it.name}=${it.value}" }) // to avoid encoding issues
     }
 }

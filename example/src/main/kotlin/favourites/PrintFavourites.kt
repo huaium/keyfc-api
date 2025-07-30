@@ -1,18 +1,16 @@
 package favourites
 
-import net.keyfc.api.result.parse.FavouritesParseResult
+import net.keyfc.api.model.favourites.FavouritesPage
 import java.time.format.DateTimeFormatter
 
-fun printFavourites(result: FavouritesParseResult) {
-    when (result) {
-        is FavouritesParseResult.Success -> {
-            val favouritesPage = result.favouritesPage
-
+fun printFavourites(result: Result<FavouritesPage>) {
+    result.fold(
+        onSuccess = { favouritesPage ->
             println("\nTitle: ${favouritesPage.pageInfo.title}")
             println("Keywords: ${favouritesPage.pageInfo.keywords}")
-            println("Description: ${favouritesPage.pageInfo.description}\n")
+            println("Description: ${favouritesPage.pageInfo.description}")
 
-            println("Favourites Page ${favouritesPage.currentPage}/${favouritesPage.totalPages}")
+            println("\nFavourites Page ${favouritesPage.pagination.currentPage}/${favouritesPage.pagination.totalPages}")
 
             if (favouritesPage.favourites.isEmpty()) {
                 println("\nNo favourites found.")
@@ -24,21 +22,14 @@ fun printFavourites(result: FavouritesParseResult) {
                     println("\n[${index + 1}] ${favourite.title}")
                     println("ID: ${favourite.id}")
                     println("Author: ${favourite.author.name} (ID: ${favourite.author.id})")
-                    println("Favourite Date: ${favourite.favouriteDate.format(dateFormatter)}")
+                    favourite.date?.let { println("Favourite Date: ${it.format(dateFormatter)}") }
+                    println("Favourite Date Raw String: ${favourite.dateText}")
                     println("URL: ${favourite.url}")
                 }
             }
+        },
+        onFailure = { exception ->
+            exception.printStackTrace()
         }
-
-        is FavouritesParseResult.PermissionDenial -> {
-            println("FAVOURITES ACCESS DENIED")
-            println("Message: ${result.message}")
-        }
-
-        is FavouritesParseResult.Failure -> {
-            println("FAVOURITES ERROR")
-            println("Message: ${result.message}")
-            println("Exception: ${result.exception}")
-        }
-    }
+    )
 }

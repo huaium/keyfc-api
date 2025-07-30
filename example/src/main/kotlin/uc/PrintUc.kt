@@ -1,17 +1,15 @@
 package uc
 
-import net.keyfc.api.result.parse.UcParseResult
+import net.keyfc.api.model.uc.UcPage
 
-fun printUc(result: UcParseResult) {
-    when (result) {
-        is UcParseResult.Success -> {
-            val ucPage = result.ucPage
-
+fun printUc(result: Result<UcPage>) {
+    result.fold(
+        onSuccess = { ucPage ->
             println("\nTitle: ${ucPage.pageInfo.title}")
             println("Keywords: ${ucPage.pageInfo.keywords}")
-            println("Description: ${ucPage.pageInfo.description}\n")
+            println("Description: ${ucPage.pageInfo.description}")
 
-            println("User Information:")
+            println("\nUser Information:")
             println("Username: ${ucPage.username}")
             println("Avatar URL: ${ucPage.avatar}")
 
@@ -77,17 +75,9 @@ fun printUc(result: UcParseResult) {
                 println("  Max Daily Attachment Size: ${attachPerm.maxDailyAttachmentSize}")
                 println("  Allowed Attachment Types: ${attachPerm.allowedAttachmentTypes}")
             } ?: println("\nNo permissions data available")
+        },
+        onFailure = { exception ->
+            exception.printStackTrace()
         }
-
-        is UcParseResult.PermissionDenial -> {
-            println("USER CONTROL PANEL ACCESS DENIED")
-            println("Message: ${result.message}")
-        }
-
-        is UcParseResult.Failure -> {
-            println("USER CONTROL PANEL ERROR")
-            println("Message: ${result.message}")
-            println("Exception: ${result.exception}")
-        }
-    }
+    )
 }

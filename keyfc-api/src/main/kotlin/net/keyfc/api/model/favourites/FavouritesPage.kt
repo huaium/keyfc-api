@@ -1,13 +1,12 @@
 package net.keyfc.api.model.favourites
 
+import com.fleeksoft.ksoup.nodes.Document
 import net.keyfc.api.model.PageInfo
+import net.keyfc.api.model.Pagination
 
-/**
- * Represents the "Favourites" page containing the user's favourites.
- */
 data class FavouritesPage(
+    val document: Document,
     val pageInfo: PageInfo,
     val favourites: List<Favourite>,
-    val currentPage: Int,
-    val totalPages: Int
+    val pagination: Pagination
 )

@@ -1,12 +1,11 @@
 package index
 
 import net.keyfc.api.model.index.Forum
-import net.keyfc.api.result.parse.IndexParseResult
+import net.keyfc.api.model.index.IndexPage
 
-fun printIndex(result: IndexParseResult) {
-    when (result) {
-        is IndexParseResult.Success -> {
-            val indexPage = result.indexPage
+fun printIndex(result: Result<IndexPage>) {
+    result.fold(
+        onSuccess = { indexPage ->
             println("Title: ${indexPage.pageInfo.title}")
             println("Keywords: ${indexPage.pageInfo.keywords}")
             println("Description: ${indexPage.pageInfo.description}")
@@ -15,13 +14,11 @@ fun printIndex(result: IndexParseResult) {
                 println("\n[Category]: ${cat.name} -> ${cat.id}")
                 printForumTree(cat.subForums)
             }
+        },
+        onFailure = { exception ->
+            exception.printStackTrace()
         }
-
-        is IndexParseResult.Failure -> {
-            println("Failed to parse index page: ${result.message}")
-            println("Exception: ${result.exception}")
-        }
-    }
+    )
 }
 
 /**
