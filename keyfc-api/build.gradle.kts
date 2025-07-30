@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm")
     id("io.ktor.plugin")
+    id("maven-publish")
 }
 
 kotlin {
@@ -19,4 +20,28 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            artifact(tasks.named("jar"))
+
+            artifactId = "keyfc-api"
+
+            pom {
+                name.set("Keyfc-api")
+                description.set("A library for parsing KeyFC pages into structured data classes for Kotlin and Java.")
+                url.set("https://github.com/huaium/keyfc-api")
+
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                        distribution.set("repo")
+                    }
+                }
+            }
+        }
+    }
 }
