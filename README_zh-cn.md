@@ -20,7 +20,29 @@
 
 ## 用例
 
-请查阅 [example](example).
+假设你想从ID为`52`的论坛页面获取数据：
+
+```kotlin
+val result: Result<ForumPage> =
+    // login 和 fetchForum 需要在协程作用域中运行
+    runBlocking {
+        KeyfcClient()
+            // 假设已有用户名和密码，且均为字符串
+            .apply { login(username, password) }
+            .use { it.fetchForum("52") }
+    }
+
+result.fold(
+    onSuccess = { forumPage ->
+        // 处理 forumPage
+    },
+    onFailure = { exception ->
+        // 处理异常
+    }
+)
+```
+
+更多用例请查阅 [example](example)。
 
 ## 许可证
 

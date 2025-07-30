@@ -20,7 +20,29 @@ A library for parsing [KeyFC](https://keyfc.net/bbs/archiver/) pages into struct
 
 ## Example
 
-See [example](example).
+Let's say you want to fetch data from the forum page with ID `52`:
+
+```kotlin
+val result: Result<ForumPage> =
+    // Run in a coroutine scope, required by login and fetchForum
+    runBlocking {
+        KeyfcClient()
+            // Assume you've got username and password as String
+            .apply { login(username, password) }
+            .use { it.fetchForum("52") }
+    }
+
+result.fold(
+    onSuccess = { forumPage ->
+        // Do something with the forum page
+    },
+    onFailure = { exception ->
+        // Handle the exception
+    }
+)
+```
+
+For more, see [example](example).
 
 ## License
 
