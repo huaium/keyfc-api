@@ -1,6 +1,6 @@
 # keyfc-api
 
-[![](https://jitpack.io/v/huaium/keyfc-api.svg)](https://jitpack.io/#huaium/keyfc-api)
+![GitHub Tag](https://img.shields.io/github/v/tag/huaium/keyfc-api)
 
 [English](README.md) | 中文
 
@@ -24,23 +24,38 @@
 
 ## 安装
 
-在 `settings.gradle.kts` 文件中，将以下内容添加到 repositories 块的末尾：
+本仓库尚未发布至 Maven Central。仅首个版本可在 JitPack 获取，且只支持 JVM 和 Android。
+
+因此，使用前需自行构建并发布至 Maven Local。
+
+首先 clone 仓库：
+
+```shell
+git clone https://github.com/huaium/keyfc-api.git
+```
+
+构建版本并发布到 Maven Local：
+
+```shell
+./gradlew :library:clean :library:publishToMavenLocal -x check
+```
+
+在你的项目根目录下，添加以下内容到 `settings.gradle.kts` 的 repositories 块开头：
 
 ```kotlin
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        mavenCentral()
-        maven { url = uri("https://jitpack.io") }
+        mavenLocal()
+        // other repositories...
     }
 }
 ```
 
-然后添加依赖项到 `build.gradle.kts`：
+然后在 module 层面的 `build.gradle.kts` 中添加依赖：
 
 ```kotlin
 dependencies {
-    implementation("com.github.huaium:keyfc-api:Tag")
+    implementation("com.github.huaium:keyfc-api:<tag>")
 }
 ```
 

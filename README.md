@@ -1,6 +1,6 @@
 # keyfc-api
 
-[![](https://jitpack.io/v/huaium/keyfc-api.svg)](https://jitpack.io/#huaium/keyfc-api)
+![GitHub Tag](https://img.shields.io/github/v/tag/huaium/keyfc-api)
 
 English | [中文](README_zh-cn.md)
 
@@ -24,23 +24,40 @@ A Kotlin Multiplatform library for parsing [KeyFC](https://keyfc.net/bbs/archive
 
 ## Installation
 
-Add it in your `settings.gradle.kts` at the end of repositories:
+This library is not yet published to a public Maven repository. Only the first version is available on JitPack, which is
+JVM and Android only.
+
+To use it, you need to build and publish it to your
+local Maven repository.
+
+First clone this repository:
+
+```shell
+git clone https://github.com/huaium/keyfc-api.git
+```
+
+Build and publish the library to local Maven repository:
+
+```shell
+./gradlew :library:clean :library:publishToMavenLocal -x check
+```
+
+Switch to your project, and add the following content to `settings.gradle.kts` at the beginning of repositories:
 
 ```kotlin
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        mavenCentral()
-        maven { url = uri("https://jitpack.io") }
+        mavenLocal()
+        // other repositories...
     }
 }
 ```
 
-Then add the dependency to `build.gradle.kts`:
+Then add the dependency to `build.gradle.kts` in your module:
 
 ```kotlin
 dependencies {
-    implementation("com.github.huaium:keyfc-api:Tag")
+    implementation("com.github.huaium:keyfc-api:<tag>")
 }
 ```
 

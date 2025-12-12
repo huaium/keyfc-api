@@ -1,5 +1,0 @@
-jdk:
-  - openjdk21
-install:
-  - echo "Running custom install command"
-  - ./gradlew :library:clean :library:publishToMavenLocal -x check
