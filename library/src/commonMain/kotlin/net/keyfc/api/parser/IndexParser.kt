@@ -1,5 +1,6 @@
 package net.keyfc.api.parser
 
+import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.Element
 import io.ktor.http.Cookie
 import net.keyfc.api.RepoClient
@@ -80,21 +81,24 @@ internal object IndexParser {
             val document = repoClient.parseUrl(INDEX_URL, cookies)
 
             // No need to validate as this is a public page
-
-            // Select all category and forum items while maintaining order
-            val elements = document.select("div.cateitem, div.forumitem")
-
-            // Process elements in functional style using fold
-            val categories = elements.fold(ParseState()) { state, element ->
-                processElement(state, element)
-            }.flushCategory()
-
-            IndexPage(
-                document = document,
-                pageInfo = document.pageInfo(),
-                categories = categories
-            )
+            parseDocument(document)
         }
+    }
+
+    internal fun parseDocument(document: Document): IndexPage {
+        // Select all category and forum items while maintaining order
+        val elements = document.select("div.cateitem, div.forumitem")
+
+        // Process elements in functional style using fold
+        val categories = elements.fold(ParseState()) { state, element ->
+            processElement(state, element)
+        }.flushCategory()
+
+        return IndexPage(
+            document = document,
+            pageInfo = document.pageInfo(),
+            categories = categories
+        )
     }
 
     /**

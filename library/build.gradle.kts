@@ -51,13 +51,13 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
             api(libs.napier)
-            implementation(libs.slf4j.android) // to suppress warnings of Ktor
+            implementation(libs.slf4j.simple) // to suppress warnings of Ktor
         }
 
         jvmMain.dependencies {
             implementation(libs.ktor.client.okhttp)
             api(libs.napier)
-            implementation(libs.logback.classic) // to suppress warnings of Ktor
+            implementation(libs.slf4j.simple) // to suppress warnings of Ktor
         }
 
         iosMain.dependencies {

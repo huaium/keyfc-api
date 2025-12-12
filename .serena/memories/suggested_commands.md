@@ -1,0 +1,11 @@
+# keyfc-api suggested commands
+- `./gradlew test` – run every Kotlin Multiplatform test target (stubbed currently) and ensure the multiplatform toolchain is configured.
+- `./gradlew :library:build` – compile the `:library` module for JVM, Android, iOS simulators, and Linux; good sanity check before publishing.
+- `./gradlew :library:publishToMavenLocal` – install the library artifact locally before trying to consume it elsewhere or before pushing a release.
+- `./gradlew :example:build` – compile the JVM example module; the output jar in `example/build/libs` contains several `main` functions (e.g., `index.IndexExampleKt`, `forum.ForumExampleKt`, etc.).
+- `java -cp example/build/libs/example.jar index.IndexExampleKt` (replace package for another example) – run one of the example entry points after building the example jar; you can swap in `forum.ForumExampleKt`, `topic.TopicExampleKt`, `uc.UcExampleKt`, etc.
+- `git status`, `git diff`, `git log -n 20` – inspect the repository state before committing; use `git add .` and `git commit` as usual.
+- `ls`, `pwd`, `cd <path>` – navigate the workspace (Darwin terminal); `ls -a` shows hidden files like `.serena` and `.git`.
+- `rg <pattern>` or `rg --files` – search through Kotlin sources quickly instead of `find`; `rg` is the preferred search tool.
+- `find . -name '*.gradle*'` or similar – locate configuration files when needed.
+- `cat`/`sed`/`tail` – inspect files and logs; `sed -n '1,80p' file` is handy for peeking at build scripts.
