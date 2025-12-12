@@ -55,7 +55,7 @@ dependencyResolutionManagement {
 
 ```kotlin
 dependencies {
-    implementation("com.github.huaium:keyfc-api:<tag>")
+    implementation("net.keyfc:api:<tag>")
 }
 ```
 

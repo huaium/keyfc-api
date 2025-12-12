@@ -57,7 +57,7 @@ Then add the dependency to `build.gradle.kts` in your module:
 
 ```kotlin
 dependencies {
-    implementation("com.github.huaium:keyfc-api:<tag>")
+    implementation("net.keyfc:api:<tag>")
 }
 ```
 
