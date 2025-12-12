@@ -1,8 +1,12 @@
 package notifications
 
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.format
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
 import net.keyfc.api.model.notifications.NotificationsPage
-import java.time.format.DateTimeFormatter
 
+@OptIn(FormatStringsInDatetimeFormats::class)
 fun printNotifications(result: Result<NotificationsPage>) {
     result.fold(
         onSuccess = { notificationsPage ->
@@ -17,7 +21,7 @@ fun printNotifications(result: Result<NotificationsPage>) {
                 println("\nNo notifications found.")
             } else {
                 println("\nNotification List:")
-                val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                val dateFormatter = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
 
                 notificationsPage.notifications.forEachIndexed { index, notification ->
                     notification.date?.let { println("\n[${index + 1}] ${it.format(dateFormatter)}") }

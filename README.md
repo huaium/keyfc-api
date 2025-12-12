@@ -4,7 +4,9 @@
 
 English | [中文](README_zh-cn.md)
 
-A library for parsing [KeyFC](https://keyfc.net/bbs/archiver/) pages into structured data classes for Kotlin and Java.
+> 🌟 This project has now become a Kotlin Multiplatform library.
+
+A Kotlin Multiplatform library for parsing [KeyFC](https://keyfc.net/bbs/archiver/) pages into structured data classes.
 
 ## Supported
 
@@ -19,6 +21,28 @@ A library for parsing [KeyFC](https://keyfc.net/bbs/archiver/) pages into struct
 - [x] [My topics](https://keyfc.net/bbs/mytopics.aspx)
 - [x] [My posts](https://keyfc.net/bbs/myposts.aspx)
 - [x] [My favourites](https://keyfc.net/bbs/usercpsubscribe.aspx)
+
+## Installation
+
+Add it in your `settings.gradle.kts` at the end of repositories:
+
+```kotlin
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
+
+Then add the dependency to `build.gradle.kts`:
+
+```kotlin
+dependencies {
+    implementation("com.github.huaium:keyfc-api:Tag")
+}
+```
 
 ## Example
 
@@ -48,26 +72,4 @@ For more, see [example](example).
 
 ## License
 
-```
-MIT License
-
-Copyright (c) 2025 Huaium
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+Please refer to [LICENSE](./LICENSE).

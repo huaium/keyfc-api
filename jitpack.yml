@@ -2,4 +2,4 @@ jdk:
   - openjdk21
 install:
   - echo "Running custom install command"
-  - ./gradlew :keyfc-api:clean :keyfc-api:publishToMavenLocal -xtest -x shadowJar
+  - ./gradlew :library:clean :library:publishToMavenLocal -x check

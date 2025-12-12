@@ -4,7 +4,9 @@
 
 [English](README.md) | 中文
 
-用于解析 [KeyFC](https://keyfc.net/bbs/archiver/) 页面为结构化数据类的库，为 Kotlin 和 Java 设计。
+> 🌟 本项目现已可用于 Kotlin Multiplatform。
+
+用于解析 [KeyFC](https://keyfc.net/bbs/archiver/) 页面为结构化数据类的 Kotlin Multiplatform 库。
 
 ## 支持
 
@@ -19,6 +21,28 @@
 - [x] [我的主题](https://keyfc.net/bbs/mytopics.aspx)
 - [x] [我的帖子](https://keyfc.net/bbs/myposts.aspx)
 - [x] [收藏夹](https://keyfc.net/bbs/usercpsubscribe.aspx)
+
+## 安装
+
+在 `settings.gradle.kts` 文件中，将以下内容添加到 repositories 块的末尾：
+
+```kotlin
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
+
+然后添加依赖项到 `build.gradle.kts`：
+
+```kotlin
+dependencies {
+    implementation("com.github.huaium:keyfc-api:Tag")
+}
+```
 
 ## 用例
 
@@ -48,26 +72,4 @@ result.fold(
 
 ## 许可证
 
-```
-MIT License
-
-Copyright (c) 2025 Huaium
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+请查阅 [LICENSE](./LICENSE)。

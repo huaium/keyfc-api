@@ -1,8 +1,11 @@
 package search
 
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.format
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
 import net.keyfc.api.model.search.SearchItem
 import net.keyfc.api.model.search.SearchPage
-import java.time.format.DateTimeFormatter
 
 fun printSearch(result: Result<SearchPage>) {
     result.fold(
@@ -28,8 +31,9 @@ fun printSearch(result: Result<SearchPage>) {
     )
 }
 
+@OptIn(FormatStringsInDatetimeFormats::class)
 private fun printSearchItem(index: Int, item: SearchItem) {
-    val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+    val dateFormatter = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
 
     println("\nRESULT #$index")
     println("Title: ${item.title}")

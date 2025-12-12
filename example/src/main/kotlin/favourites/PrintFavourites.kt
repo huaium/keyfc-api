@@ -1,8 +1,12 @@
 package favourites
 
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.format
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
 import net.keyfc.api.model.favourites.FavouritesPage
-import java.time.format.DateTimeFormatter
 
+@OptIn(FormatStringsInDatetimeFormats::class)
 fun printFavourites(result: Result<FavouritesPage>) {
     result.fold(
         onSuccess = { favouritesPage ->
@@ -16,7 +20,7 @@ fun printFavourites(result: Result<FavouritesPage>) {
                 println("\nNo favourites found.")
             } else {
                 println("\nFavourite List:")
-                val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                val dateFormatter = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm:ss") }
 
                 favouritesPage.favourites.forEachIndexed { index, favourite ->
                     println("\n[${index + 1}] ${favourite.title}")

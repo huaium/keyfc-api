@@ -1,7 +1,18 @@
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
 }
 
-rootProject.name = "keyfc-api-parent"
+dependencyResolutionManagement {
+    repositories {
+        mavenLocal()
+        google()
+        mavenCentral()
+    }
+}
 
-include("keyfc-api", "example")
+rootProject.name = "keyfc-api"
+include(":library", ":example")

@@ -8,5 +8,5 @@ kotlin {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-    implementation(project(":keyfc-api"))
+    implementation("net.keyfc:api:1.0.1")
 }

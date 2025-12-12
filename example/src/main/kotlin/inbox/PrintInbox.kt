@@ -1,8 +1,12 @@
 package inbox
 
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.format
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
 import net.keyfc.api.model.inbox.InboxPage
-import java.time.format.DateTimeFormatter
 
+@OptIn(FormatStringsInDatetimeFormats::class)
 fun printInbox(result: Result<InboxPage>) {
     result.fold(
         onSuccess = { inboxPage ->
@@ -17,7 +21,7 @@ fun printInbox(result: Result<InboxPage>) {
                 println("\nNo messages found.")
             } else {
                 println("\nMessage List:")
-                val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                val dateFormatter = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm:ss") }
 
                 inboxPage.messages.forEachIndexed { index, message ->
                     println("\n[${index + 1}] ${message.subject} (${if (message.isRead) "Read" else "Unread"})")

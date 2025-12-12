@@ -1,8 +1,12 @@
 package myposts
 
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.format
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
 import net.keyfc.api.model.myposts.MyPostsPage
-import java.time.format.DateTimeFormatter
 
+@OptIn(FormatStringsInDatetimeFormats::class)
 fun printMyPosts(result: Result<MyPostsPage>) {
     result.fold(
         onSuccess = { myPostsPage ->
@@ -16,7 +20,7 @@ fun printMyPosts(result: Result<MyPostsPage>) {
                 println("\nNo posts found.")
             } else {
                 println("\nPost List:")
-                val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                val dateFormatter = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
 
                 myPostsPage.posts.forEachIndexed { index, post ->
                     println("\n[${index + 1}] ${post.title} ${if (post.isHot) "(HOT)" else ""}")

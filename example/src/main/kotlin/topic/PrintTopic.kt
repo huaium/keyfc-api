@@ -1,8 +1,12 @@
 package topic
 
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.format
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
 import net.keyfc.api.model.topic.TopicPage
-import java.time.format.DateTimeFormatter
 
+@OptIn(FormatStringsInDatetimeFormats::class)
 fun printTopic(result: Result<TopicPage>) {
     result.fold(
         onSuccess = { topicPage ->
@@ -33,7 +37,7 @@ fun printTopic(result: Result<TopicPage>) {
                 println("ID: ${it.id}")
             }
 
-            val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+            val dateFormatter = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
             println("\nPosts (${topicPage.posts.size} total):")
             topicPage.posts.forEach { post ->
                 println("Author: ${post.author}")

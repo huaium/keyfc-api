@@ -1,8 +1,12 @@
 package mytopics
 
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.format
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
 import net.keyfc.api.model.mytopics.MyTopicsPage
-import java.time.format.DateTimeFormatter
 
+@OptIn(FormatStringsInDatetimeFormats::class)
 fun printMyTopics(result: Result<MyTopicsPage>) {
     result.fold(
         onSuccess = { myTopicsPage ->
@@ -16,7 +20,7 @@ fun printMyTopics(result: Result<MyTopicsPage>) {
                 println("\nNo topics found.")
             } else {
                 println("\nTopic List:")
-                val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                val dateFormatter = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
 
                 myTopicsPage.topics.forEachIndexed { index, topic ->
                     println("\n[${index + 1}] ${topic.title} ${if (topic.isHot) "(HOT)" else ""}")
